@@ -74,10 +74,10 @@ export default function AssetsPage() {
   }, [filters.approved, filters.category, filters.location, filters.published, filters.q, page, pageSize]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       void fetchAssets();
     }, 0);
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [fetchAssets]);
 
   async function patchAsset(id: string, patch: Record<string, unknown>) {

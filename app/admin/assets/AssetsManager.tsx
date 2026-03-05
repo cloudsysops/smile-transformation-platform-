@@ -54,10 +54,10 @@ export default function AssetsManager() {
   }, [buildParams]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      void fetchAssets();
+    const timer = window.setTimeout(() => {
+      fetchAssets();
     }, 0);
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [fetchAssets]);
 
   async function toggleApproved(id: string, value: boolean) {
