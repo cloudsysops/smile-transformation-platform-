@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { createLogger } from "@/lib/logger";
 import { callSalesResponder } from "@/lib/ai/openai";
-import { LeadTriageOutputSchema } from "@/lib/ai/schemas";
+import { LeadTriageOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
 
 const BodySchema = z.object({
   lead_id: z.string().uuid(),
@@ -23,8 +23,8 @@ export async function POST(request: Request) {
 
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
-      { error: "AI service not configured", request_id: requestId },
-      { status: 500 },
+      { error: "AI responder unavailable: OPENAI_API_KEY is not configured on server", request_id: requestId },
+      { status: 503 },
     );
   }
 
@@ -72,10 +72,15 @@ export async function POST(request: Request) {
       triage: triageMaybe.success ? triageMaybe.data : null,
       cta_url: ctaUrl,
     });
+    const parsedReply = SalesResponderOutputSchema.safeParse(reply);
+    if (!parsedReply.success) {
+      log.error("Sales responder output failed strict schema validation");
+      return NextResponse.json({ error: "Failed to generate reply", request_id: requestId }, { status: 500 });
+    }
 
     const generatedAt = new Date().toISOString();
     const messagePayload = {
-      ...reply,
+      ...parsedReply.data,
       generated_at: generatedAt,
       lead_snapshot_minimal: {
         lead_id: lead.id as string,

@@ -113,6 +113,23 @@ npm run dev
 
 ---
 
+## M8 AI Lead Responder (admin)
+1. Ensure `OPENAI_API_KEY` is set in `.env.local`.
+2. Sign in as admin and open `/admin/leads/[id]`.
+3. Click **Generate Reply**.
+4. Validate UI:
+   - A sales reply appears with `whatsapp_message`, `email_subject`, `email_body`, `followup_in_hours`, `tone`.
+   - Use **Quick copy WhatsApp** and confirm clipboard is updated.
+   - Safety disclaimer is visible (coordination/hospitality only; no medical promises).
+5. Validate DB:
+   - `lead_ai` has a row for `lead_id`.
+   - `lead_ai.messages_json` contains the generated draft payload.
+6. Missing key guard:
+   - Temporarily remove `OPENAI_API_KEY` and call **Generate Reply**.
+   - Expect a clear admin-facing configuration error from `/api/ai/respond`.
+
+---
+
 ## Final local checklist (URLs + curl)
 | # | Action | Expected |
 |---|--------|----------|

@@ -30,6 +30,8 @@ type Props = {
 };
 
 export default function AiActionsPanel({ leadId, initialTriage, initialMessage, initialItineraries }: Props) {
+  const safetyDisclaimer =
+    "Use this copy only for coordination and hospitality support. Do not provide medical advice or promise medical outcomes.";
   const [triage, setTriage] = useState<LeadTriageOutput | null>(initialTriage);
   const [message, setMessage] = useState<StoredMessage | null>(initialMessage);
   const [itineraryPreview, setItineraryPreview] = useState<ItineraryOutput | null>(null);
@@ -174,9 +176,23 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
       </div>
 
       <div className="space-y-3 rounded border border-zinc-200 p-4">
-        <h3 className="font-semibold">Latest sales reply</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-semibold">Latest sales reply</h3>
+          {message ? (
+            <button
+              type="button"
+              onClick={() => copyToClipboard(message.whatsapp_message, "wa-quick")}
+              className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-50"
+            >
+              {copiedKey === "wa-quick" ? "WhatsApp copied" : "Quick copy WhatsApp"}
+            </button>
+          ) : null}
+        </div>
         {message ? (
           <div className="space-y-4 text-sm">
+            <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+              {safetyDisclaimer}
+            </p>
             <p className="text-xs text-zinc-500">
               Tone: {message.tone} · Follow-up: {message.followup_in_hours}h
               {message.generated_at ? ` · Generated: ${new Date(message.generated_at).toLocaleString()}` : ""}
