@@ -1,5 +1,15 @@
 # Smile Transformation — Module Status
 
+## Startup Sprint Tracker
+
+| Track | Status | Definition of done |
+|-------|--------|--------------------|
+| **M8** Assets Manager + hardening | ✅ Done | CI green (`lint` + `build`), health endpoints, unified migration, admin assets fixes |
+| **M9** AI Workers (triage/reply/itinerary) | ⏳ Pending | Secure endpoints + admin UI + persistence validated |
+| **Deploy** (Vercel + Stripe + Supabase) | ⏳ Pending | Prod env configured, webhook verified, smoke tests in production |
+
+---
+
 | Module | Status | Notes |
 |--------|--------|-------|
 | **M1** Foundation & CI | ✅ Done | Next.js 16, TS, Zod, logger, server config, security headers, GitHub Actions (lint + build) |
@@ -8,8 +18,9 @@
 | **M4** Packages + seed | ✅ Done | `scripts/seed_packages.sql` (smile-medellin, smile-manizales); run after migration |
 | **M5** Assessment UI | ✅ Done | Form with honeypot, package prefill from query; POST to `/api/leads` |
 | **M5.1** `/api/leads` | ✅ Done | Server-side POST, Zod, service role only; honeypot rejection |
-| **M6** Admin leads | ⏳ Pending | Auth + role gate, leads list |
-| **M7** Stripe checkout + webhook | ⏳ Pending | Checkout session, webhook with raw body verification |
+| **M6** Admin leads | ✅ Done | Auth + role gate, leads list/detail, status updates |
+| **M7** Stripe checkout + webhook | ✅ Done | Checkout session, webhook with raw body verification |
+| **M8** CTO hardening | ✅ Done | `/api/health`, readiness checks, migration `0002` unificada, manejo de errores mejorado |
 
 ## Run after migration
 ```bash
