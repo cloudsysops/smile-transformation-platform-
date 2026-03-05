@@ -11,7 +11,7 @@ export type RateLimitResult = {
 };
 
 export interface RateLimitProvider {
-  check(key: string, options: RateLimitOptions): RateLimitResult;
+  check(key: string, options: RateLimitOptions): Promise<RateLimitResult>;
 }
 
 type MemoryEntry = {
@@ -22,7 +22,7 @@ type MemoryEntry = {
 class InMemoryRateLimitProvider implements RateLimitProvider {
   private readonly store = new Map<string, MemoryEntry>();
 
-  check(key: string, options: RateLimitOptions): RateLimitResult {
+  async check(key: string, options: RateLimitOptions): Promise<RateLimitResult> {
     const now = Date.now();
     const entry = this.store.get(key);
     if (!entry || now > entry.resetAt) {
@@ -55,6 +55,51 @@ class InMemoryRateLimitProvider implements RateLimitProvider {
   }
 }
 
+class UpstashRateLimitProvider implements RateLimitProvider {
+  constructor(
+    private readonly restUrl: string,
+    private readonly restToken: string,
+    private readonly fallback: RateLimitProvider,
+  ) {}
+
+  async check(key: string, options: RateLimitOptions): Promise<RateLimitResult> {
+    const redisKey = `ratelimit:${key}`;
+    try {
+      const response = await fetch(`${this.restUrl}/pipeline`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.restToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          ["INCR", redisKey],
+          ["PEXPIRE", redisKey, options.windowMs, "NX"],
+          ["PTTL", redisKey],
+        ]),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upstash pipeline failed (${response.status})`);
+      }
+
+      const out = await response.json() as Array<{ result?: unknown }>;
+      const count = Number(out?.[0]?.result ?? 0);
+      const ttlMs = Number(out?.[2]?.result ?? options.windowMs);
+      const resetIn = ttlMs > 0 ? ttlMs : options.windowMs;
+
+      return {
+        allowed: count <= options.maxRequests,
+        limit: options.maxRequests,
+        remaining: Math.max(0, options.maxRequests - count),
+        resetAt: Date.now() + resetIn,
+      };
+    } catch {
+      // Fail safe: keep lead capture available and apply per-instance throttling.
+      return this.fallback.check(key, options);
+    }
+  }
+}
+
 let provider: RateLimitProvider | null = null;
 
 /**
@@ -64,8 +109,22 @@ let provider: RateLimitProvider | null = null;
 export function getRateLimitProvider(): RateLimitProvider {
   if (provider) return provider;
 
-  const selected = process.env.RATE_LIMIT_PROVIDER ?? "memory";
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const selected = process.env.RATE_LIMIT_PROVIDER ?? (upstashUrl && upstashToken ? "upstash" : "memory");
+
   switch (selected) {
+    case "upstash":
+      if (upstashUrl && upstashToken) {
+        provider = new UpstashRateLimitProvider(
+          upstashUrl,
+          upstashToken,
+          new InMemoryRateLimitProvider(),
+        );
+        return provider;
+      }
+      provider = new InMemoryRateLimitProvider();
+      return provider;
     case "memory":
     default:
       provider = new InMemoryRateLimitProvider();

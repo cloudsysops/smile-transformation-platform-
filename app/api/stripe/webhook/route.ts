@@ -4,6 +4,8 @@ import { getServerConfig } from "@/lib/config/server";
 import { getServerSupabase } from "@/lib/supabase/server";
 import { createLogger } from "@/lib/logger";
 
+const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-02-25.clover";
+
 /** Stripe webhook: MUST use raw body for signature verification. */
 export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
@@ -25,9 +27,10 @@ export async function POST(request: Request) {
     log.error("Failed to read raw body");
     return NextResponse.json({ error: "Bad body" }, { status: 400 });
   }
+  const stripe = new Stripe(config.STRIPE_SECRET_KEY, { apiVersion: STRIPE_API_VERSION });
   let event: Stripe.Event;
   try {
-    event = Stripe.webhooks.constructEvent(
+    event = stripe.webhooks.constructEvent(
       payload,
       signature,
       config.STRIPE_WEBHOOK_SECRET
@@ -44,26 +47,60 @@ export async function POST(request: Request) {
   const leadId = session.metadata?.lead_id as string | undefined;
   if (!leadId) {
     log.warn("checkout.session.completed without lead_id in metadata");
+  }
+  const now = new Date().toISOString();
+  const supabase = getServerSupabase();
+  const { data: existingPayment, error: paymentLookupError } = await supabase
+    .from("payments")
+    .select("id, lead_id, status")
+    .eq("stripe_checkout_session_id", sessionId)
+    .maybeSingle();
+  if (paymentLookupError) {
+    log.error("Failed to lookup payment", { error: paymentLookupError.message, session_id: sessionId });
+    return NextResponse.json({ error: "Internal server error", request_id: requestId }, { status: 500 });
+  }
+  if (!existingPayment) {
+    log.warn("Webhook received for unknown checkout session", { session_id: sessionId });
     return NextResponse.json({ received: true });
   }
-  const supabase = getServerSupabase();
+  if (existingPayment.status === "succeeded") {
+    log.info("Webhook replay ignored: payment already succeeded", {
+      payment_id: existingPayment.id,
+      session_id: sessionId,
+    });
+    return NextResponse.json({ received: true, idempotent: true });
+  }
   const { data: payment, error: updatePayError } = await supabase
     .from("payments")
-    .update({ status: "succeeded", updated_at: new Date().toISOString() })
-    .eq("stripe_checkout_session_id", sessionId)
+    .update({ status: "succeeded", updated_at: now })
+    .eq("id", existingPayment.id)
+    .neq("status", "succeeded")
     .select("id")
-    .single();
+    .maybeSingle();
   if (updatePayError || !payment) {
+    if (!updatePayError && !payment) {
+      log.info("Webhook replay ignored after concurrent update", { payment_id: existingPayment.id });
+      return NextResponse.json({ received: true, idempotent: true });
+    }
     log.error("Failed to update payment", { error: String(updatePayError) });
     return NextResponse.json({ error: "Internal server error", request_id: requestId }, { status: 500 });
   }
+  const leadIdToUpdate = leadId ?? existingPayment.lead_id;
+  if (!leadIdToUpdate) {
+    log.warn("No lead id available for succeeded payment", { payment_id: payment.id });
+    return NextResponse.json({ received: true });
+  }
   const { error: leadError } = await supabase
     .from("leads")
-    .update({ status: "deposit_paid", updated_at: new Date().toISOString() })
-    .eq("id", leadId);
+    .update({ status: "deposit_paid", updated_at: now })
+    .eq("id", leadIdToUpdate)
+    .neq("status", "deposit_paid");
   if (leadError) {
     log.error("Failed to update lead status", { error: leadError.message });
   }
-  log.info("Webhook processed: payment succeeded, lead deposit_paid", { lead_id: leadId, payment_id: payment.id });
+  log.info("Webhook processed: payment succeeded, lead deposit_paid", {
+    lead_id: leadIdToUpdate,
+    payment_id: payment.id,
+  });
   return NextResponse.json({ received: true });
 }
