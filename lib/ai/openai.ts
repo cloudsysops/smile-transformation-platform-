@@ -56,6 +56,8 @@ async function runChatCompletion(messages: OpenAIMessage[], withResponseFormat: 
     payload.response_format = { type: "json_object" };
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20_000);
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -64,6 +66,14 @@ async function runChatCompletion(messages: OpenAIMessage[], withResponseFormat: 
     },
     body: JSON.stringify(payload),
     cache: "no-store",
+    signal: controller.signal,
+  }).catch((err) => {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("OpenAI request timed out");
+    }
+    throw err;
+  }).finally(() => {
+    clearTimeout(timeout);
   });
 
   const json = await response.json().catch(() => ({} as ChatCompletionResponse));
@@ -79,6 +89,15 @@ async function runChatCompletion(messages: OpenAIMessage[], withResponseFormat: 
   return content;
 }
 
+function isResponseFormatUnsupported(error: unknown): boolean {
+  const message = String(error).toLowerCase();
+  return message.includes("response_format")
+    && (message.includes("unsupported")
+      || message.includes("not supported")
+      || message.includes("json_object")
+      || message.includes("invalid"));
+}
+
 export async function callAgent({ agentName, systemPrompt, userJson }: CallAgentArgs): Promise<unknown> {
   const userMessage = JSON.stringify(userJson);
   const messages: OpenAIMessage[] = [
@@ -89,7 +108,10 @@ export async function callAgent({ agentName, systemPrompt, userJson }: CallAgent
   let content = "";
   try {
     content = await runChatCompletion(messages, true);
-  } catch {
+  } catch (err) {
+    if (!isResponseFormatUnsupported(err)) {
+      throw err;
+    }
     content = await runChatCompletion(messages, false);
   }
 
