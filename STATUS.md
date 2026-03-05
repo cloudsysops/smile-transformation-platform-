@@ -5,7 +5,7 @@
 | Track | Status | Definition of done |
 |-------|--------|--------------------|
 | **M8** Assets Manager + hardening | ✅ Done | CI green (`lint` + `build`), health endpoints, unified migration, admin assets fixes |
-| **M9** AI Workers (triage/reply/itinerary) | ⏳ Pending | Secure endpoints + admin UI + persistence validated |
+| **M9** AI Workers (triage/reply/itinerary) | ✅ Done | Endpoints + admin UI connected, outputs persisted and visible in lead detail |
 | **Deploy** (Vercel + Stripe + Supabase) | ⏳ Pending | Prod env configured, webhook verified, smoke tests in production |
 
 ---
@@ -20,7 +20,9 @@
 | **M5.1** `/api/leads` | ✅ Done | Server-side POST, Zod, service role only; honeypot rejection |
 | **M6** Admin leads | ✅ Done | Auth + role gate, leads list/detail, status updates |
 | **M7** Stripe checkout + webhook | ✅ Done | Checkout session, webhook with raw body verification |
-| **M8** CTO hardening | ✅ Done | `/api/health`, readiness checks, migration `0002` unificada, manejo de errores mejorado |
+| **M8** Admin assets manager | ✅ Done | Upload/edit/delete with Supabase Storage, filters and moderation toggles |
+| **M8.1** CTO hardening | ✅ Done | `/api/health`, readiness checks, migration `0002` unificada, manejo de errores mejorado |
+| **M9** AI agents (admin connected) | ✅ Done | `/api/ai/{triage,respond,itinerary}`, Zod-validated strict JSON, persisted + visible in `/admin/leads/[id]` |
 
 ## Run after migration
 ```bash

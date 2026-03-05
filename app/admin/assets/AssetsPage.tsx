@@ -71,11 +71,13 @@ export default function AssetsPage() {
       setError("Network error.");
     }
     setLoading(false);
-  }, [page, pageSize, filters.category, filters.location, filters.approved, filters.published, filters.q]);
+  }, [filters.approved, filters.category, filters.location, filters.published, filters.q, page, pageSize]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void fetchAssets();
+    const timer = window.setTimeout(() => {
+      void fetchAssets();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [fetchAssets]);
 
   async function patchAsset(id: string, patch: Record<string, unknown>) {
