@@ -72,3 +72,22 @@ Worker behavior:
 - `POST /api/automation/worker`
 
 Both require `AUTOMATION_CRON_SECRET` via `x-automation-secret` or Bearer token.
+
+## Assisted outbound conversion (M16)
+
+AI responders still generate drafts into `lead_ai.messages_json`, and admin now has an outbound lifecycle queue:
+
+- Data model: `outbound_messages`
+- Channels: `whatsapp`, `email`
+- Source: `ai_draft` or `manual`
+- Lifecycle statuses:
+  - `draft`
+  - `approved`
+  - `queued`
+  - `sent`
+  - `delivered`
+  - `failed`
+  - `replied`
+  - `cancelled`
+
+This keeps execution human-supervised while enabling measurable conversion tracking per lead.

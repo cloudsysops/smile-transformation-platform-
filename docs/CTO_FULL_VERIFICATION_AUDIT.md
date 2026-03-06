@@ -20,6 +20,18 @@
   - marks `dead_letter` on max-attempt exhaustion
 - Added queue idempotency via unique key `(lead_id, trigger_type, job_type)` and enqueue upsert with `ignoreDuplicates`.
 
+## 0.1) M16 addendum — Assisted outbound conversion engine (2026-03-06)
+
+- Added `public.outbound_messages` table for managed outbound lifecycle per lead.
+- Added admin APIs:
+  - `GET/POST /api/admin/leads/[id]/outbound` (list/create drafts)
+  - `PATCH /api/admin/outbound-messages/[id]` (approve/queue/send/deliver/fail/reply/cancel transitions)
+- Added lead-detail admin panel for:
+  - create outbound drafts from latest AI responder output
+  - create manual drafts
+  - transition statuses with tracking
+- Added contact telemetry update: outbound statuses `sent/delivered/replied` update `leads.last_contacted_at`.
+
 ---
 
 ## 1) Executive summary
