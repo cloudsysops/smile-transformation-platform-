@@ -55,7 +55,6 @@ describe("POST /api/stripe/checkout", () => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           lead_id: leadId,
-          amount_cents: 50000,
           success_url: "https://evil.example.com/success",
         }),
       }),
@@ -91,7 +90,6 @@ describe("POST /api/stripe/checkout", () => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           lead_id: leadId,
-          amount_cents: 50000,
         }),
       }),
     );
@@ -99,5 +97,70 @@ describe("POST /api/stripe/checkout", () => {
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({ error: "Lead not found" });
     expect(createSessionMock).not.toHaveBeenCalled();
+  });
+
+  it("uses package deposit pricing even when client sends a different amount", async () => {
+    const insertMock = vi.fn(async () => ({ error: null }));
+    fromMock.mockImplementation((table: string) => {
+      if (table === "leads") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: { id: leadId, package_slug: "smile-medellin" }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === "packages") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({ data: { name: "Smile Transformation Medellín", deposit_cents: 75000 }, error: null }),
+            }),
+          }),
+        };
+      }
+      if (table === "payments") {
+        return { insert: insertMock };
+      }
+      return {};
+    });
+    createSessionMock.mockResolvedValue({ id: "cs_test_123", url: "https://stripe.example/checkout" });
+
+    const { POST } = await import("@/app/api/stripe/checkout/route");
+    const response = await POST(
+      new Request("http://localhost/api/stripe/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          lead_id: leadId,
+          amount_cents: 50000,
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      url: "https://stripe.example/checkout",
+      amount_cents: 75000,
+      request_id: expect.any(String),
+    });
+    expect(createSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        line_items: [
+          expect.objectContaining({
+            price_data: expect.objectContaining({
+              unit_amount: 75000,
+            }),
+          }),
+        ],
+      }),
+    );
+    expect(insertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lead_id: leadId,
+        amount_cents: 75000,
+      }),
+    );
   });
 });

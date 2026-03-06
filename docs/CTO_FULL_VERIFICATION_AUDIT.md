@@ -6,6 +6,22 @@
 
 ---
 
+## 0) M14 addendum — Durable AI automation queue (2026-03-06)
+
+- Added durable automation table: `public.ai_automation_jobs`.
+- Trigger sources now enqueue jobs instead of direct fire-and-forget execution:
+  - `POST /api/leads` → `lead-triage`, `sales-responder`
+  - `POST /api/stripe/webhook` (deposit paid) → `itinerary-generator`, `ops-coordinator`
+  - `POST /api/automation/followups` (secret-protected) → inactivity follow-up jobs
+- Added worker endpoint: `POST /api/automation/worker`
+  - claims due jobs
+  - executes job flow
+  - retries with backoff
+  - marks `dead_letter` on max-attempt exhaustion
+- Added queue idempotency via unique key `(lead_id, trigger_type, job_type)` and enqueue upsert with `ignoreDuplicates`.
+
+---
+
 ## 1) Executive summary
 
 The platform is now in a stronger production posture for sales:

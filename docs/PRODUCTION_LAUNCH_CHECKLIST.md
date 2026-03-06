@@ -24,6 +24,7 @@ Operational checklist to launch safely on Vercel + Supabase + Stripe.
 |---|---|---|
 | `OPENAI_API_KEY` | Server secret | AI endpoints (`/api/ai/*`) |
 | `OPENAI_MODEL` | Server | AI model override |
+| `AUTOMATION_CRON_SECRET` | Server secret | Protects internal AI automation cron endpoint |
 | `COMMIT_SHA` | Server | Version fallback for `/api/health` |
 | `RATE_LIMIT_PROVIDER` | Server | `memory` or `upstash` |
 | `UPSTASH_REDIS_REST_URL` | Server secret | Multi-instance rate limit backend |
@@ -39,6 +40,10 @@ Operational checklist to launch safely on Vercel + Supabase + Stripe.
    - `supabase/migrations/0001_init.sql`
    - `supabase/migrations/0002_assets_extended_unified.sql`
    - `supabase/migrations/0003_m9_ai_admin_connected.sql`
+   - `supabase/migrations/0004_leads_attribution.sql`
+   - `supabase/migrations/0005_leads_follow_up_queue.sql`
+   - `supabase/migrations/0006_ai_automation_foundation.sql`
+   - `supabase/migrations/0007_ai_automation_jobs.sql`
 2. Validate RLS is enabled for:
    - `profiles`, `packages`, `leads`, `payments`, `assets`, `itineraries`, `lead_ai`
 3. Validate policy behavior:
@@ -123,6 +128,10 @@ where email = 'admin@your-domain.com';
    Expect: returns checkout URL.
 7. Complete Stripe test payment + webhook delivery  
    Expect: `payments.status = succeeded`, `leads.status = deposit_paid`.
+8. Trigger follow-up automation cron with secret  
+   Expect: `POST /api/automation/followups` returns 200 and generates 24h/48h drafts only for inactive active-status leads.
+9. Trigger queue worker with secret  
+   Expect: `POST /api/automation/worker` claims jobs, executes agents, retries failures with backoff, and marks exhausted jobs as `dead_letter`.
 
 ---
 
@@ -148,6 +157,6 @@ Sentry is optional and not required for launch. If enabled later:
 
 ## Final go/no-go gate
 
-- CI (`npm ci`, `npm run lint`, `npm run build`) is green.
+- CI (`npm ci`, `npm run lint`, `npm run test`, `npm run build`) is green.
 - Required env vars pass `./scripts/env_check.sh`.
 - Health endpoints and payment webhook flow validated in Production.

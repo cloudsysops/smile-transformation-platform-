@@ -2,12 +2,25 @@
 
 import { useState } from "react";
 
-const DEFAULT_CENTS = 50000; // $500
+const DEFAULT_CENTS = 50_000;
 
-type Props = { leadId: string };
+type Props = {
+  leadId: string;
+  amountCents?: number | null;
+};
 
-export default function DepositButton({ leadId }: Props) {
+function formatUsd(cents: number): string {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(cents / 100);
+}
+
+export default function DepositButton({ leadId, amountCents }: Props) {
   const [loading, setLoading] = useState(false);
+  const effectiveAmount = Number.isInteger(amountCents) && (amountCents ?? 0) > 0
+    ? (amountCents as number)
+    : DEFAULT_CENTS;
 
   async function handleClick() {
     setLoading(true);
@@ -18,7 +31,6 @@ export default function DepositButton({ leadId }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lead_id: leadId,
-          amount_cents: DEFAULT_CENTS,
           success_url: `${origin}/admin/leads/${leadId}?paid=1`,
           cancel_url: `${origin}/admin/leads/${leadId}`,
         }),
@@ -41,7 +53,7 @@ export default function DepositButton({ leadId }: Props) {
       disabled={loading}
       className="rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
     >
-      {loading ? "Redirecting…" : "Collect deposit ($500)"}
+      {loading ? "Redirecting…" : `Collect deposit (${formatUsd(effectiveAmount)})`}
     </button>
   );
 }

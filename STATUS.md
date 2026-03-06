@@ -24,12 +24,23 @@
 | **M8.1** CTO hardening | ✅ Done | `/api/health`, readiness checks, migration `0002` unificada, manejo de errores mejorado |
 | **M9** AI agents (admin connected) | ✅ Done | `/api/ai/{triage,respond,itinerary}`, Zod-validated strict JSON, persisted + visible in `/admin/leads/[id]` |
 | **M9.1** AI lead responder (selling mode) | ✅ Done | “Generate Reply” returns WhatsApp + email drafts, copy-ready UI, persisted in `lead_ai.messages_json` |
+| **M10** Conversion attribution | ✅ Done | Package CTA keeps intent (`?package=`), lead capture stores UTM/referrer/landing path, admin lead detail shows attribution |
+| **M11** Sales follow-up queue | ✅ Done | Leads include next follow-up/last contacted/notes, admin queue prioritizes overdue leads, detail page includes follow-up planner |
+| **M12** Deposit pricing governance | ✅ Done | Stripe checkout amount is resolved server-side from package pricing, client amount ignored, admin deposit CTA reflects effective amount |
+| **M13** Agent automation foundation | ✅ Done | Internal server-side triggers run triage/respond after lead creation, itinerary/ops after deposit_paid, plus cron-safe 24h/48h follow-up drafts |
+| **M14** Durable automation queue | ✅ Done | Trigger events enqueue jobs in `ai_automation_jobs`; worker endpoint executes jobs with locks, retries, and dead-letter handling |
 
 ## Run after migration
 ```bash
 # In Supabase SQL editor, run:
 # 1. supabase/migrations/0001_init.sql
-# 2. scripts/seed_packages.sql
+# 2. supabase/migrations/0002_assets_extended_unified.sql
+# 3. supabase/migrations/0003_m9_ai_admin_connected.sql
+# 4. supabase/migrations/0004_leads_attribution.sql
+# 5. supabase/migrations/0005_leads_follow_up_queue.sql
+# 6. supabase/migrations/0006_ai_automation_foundation.sql
+# 7. supabase/migrations/0007_ai_automation_jobs.sql
+# 8. scripts/seed_packages.sql
 ```
 
 ## Env

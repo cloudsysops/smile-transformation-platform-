@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase/server";
 import LeadStatusForm from "../LeadStatusForm";
+import LeadFollowUpForm from "../LeadFollowUpForm";
 import DepositButton from "../DepositButton";
 import AiActionsPanel from "./AiActionsPanel";
 import { ItineraryOutputSchema, LeadTriageOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
@@ -39,6 +40,25 @@ export default async function AdminLeadDetailPage({ params }: Props) {
     .single();
   if (error || !lead) notFound();
 
+  let depositAmountCents: number | null = null;
+  if (lead.package_slug) {
+    const { data: packageRow } = await supabase
+      .from("packages")
+      .select("deposit_cents")
+      .eq("slug", lead.package_slug)
+      .maybeSingle();
+    const raw = packageRow?.deposit_cents;
+    const value =
+      typeof raw === "number"
+        ? raw
+        : typeof raw === "string"
+          ? Number(raw)
+          : NaN;
+    if (Number.isInteger(value) && value > 0) {
+      depositAmountCents = value;
+    }
+  }
+
   const { data: aiRows } = await supabase
     .from("lead_ai")
     .select("triage_json, messages_json")
@@ -64,6 +84,15 @@ export default async function AdminLeadDetailPage({ params }: Props) {
       created_at: row.created_at as string,
     };
   });
+  const attributionFields = [
+    { label: "UTM source", value: lead.utm_source as string | null | undefined },
+    { label: "UTM medium", value: lead.utm_medium as string | null | undefined },
+    { label: "UTM campaign", value: lead.utm_campaign as string | null | undefined },
+    { label: "UTM term", value: lead.utm_term as string | null | undefined },
+    { label: "UTM content", value: lead.utm_content as string | null | undefined },
+    { label: "Landing path", value: lead.landing_path as string | null | undefined },
+    { label: "Referrer URL", value: lead.referrer_url as string | null | undefined },
+  ];
 
   return (
     <AdminShell
@@ -85,15 +114,57 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             {lead.country && <div><dt className="font-medium text-zinc-500">Country</dt><dd>{lead.country}</dd></div>}
             {lead.package_slug && <div><dt className="font-medium text-zinc-500">Package</dt><dd>{lead.package_slug}</dd></div>}
             <div><dt className="font-medium text-zinc-500">Status</dt><dd>{lead.status}</dd></div>
+            {lead.last_contacted_at && (
+              <div>
+                <dt className="font-medium text-zinc-500">Last contacted</dt>
+                <dd>{new Date(lead.last_contacted_at).toLocaleString()}</dd>
+              </div>
+            )}
+            {lead.next_follow_up_at && (
+              <div>
+                <dt className="font-medium text-zinc-500">Next follow-up</dt>
+                <dd>{new Date(lead.next_follow_up_at).toLocaleString()}</dd>
+              </div>
+            )}
             <div><dt className="font-medium text-zinc-500">Created</dt><dd>{new Date(lead.created_at).toLocaleString()}</dd></div>
             {lead.message && <div><dt className="font-medium text-zinc-500">Message</dt><dd className="whitespace-pre-wrap">{lead.message}</dd></div>}
+            {lead.follow_up_notes && (
+              <div>
+                <dt className="font-medium text-zinc-500">Follow-up notes</dt>
+                <dd className="whitespace-pre-wrap">{lead.follow_up_notes}</dd>
+              </div>
+            )}
+            {attributionFields.some((item) => item.value) && (
+              <div className="space-y-1 pt-2">
+                <dt className="font-medium text-zinc-500">Attribution</dt>
+                <dd>
+                  <ul className="space-y-1">
+                    {attributionFields.map((item) =>
+                      item.value ? (
+                        <li key={item.label}>
+                          <span className="font-medium text-zinc-500">{item.label}:</span>{" "}
+                          <span className="break-all">{item.value}</span>
+                        </li>
+                      ) : null,
+                    )}
+                  </ul>
+                </dd>
+              </div>
+            )}
           </dl>
         </div>
         <LeadStatusForm leadId={lead.id} currentStatus={lead.status} />
+        <LeadFollowUpForm
+          leadId={lead.id}
+          currentStatus={lead.status}
+          currentLastContactedAt={(lead.last_contacted_at as string | null | undefined) ?? null}
+          currentNextFollowUpAt={(lead.next_follow_up_at as string | null | undefined) ?? null}
+          currentFollowUpNotes={(lead.follow_up_notes as string | null | undefined) ?? null}
+        />
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <h2 className="font-semibold">Stripe deposit</h2>
           <p className="mt-1 text-sm text-zinc-600">Create a checkout session for the deposit.</p>
-          <DepositButton leadId={lead.id} />
+          <DepositButton leadId={lead.id} amountCents={depositAmountCents} />
         </div>
         <AiActionsPanel
           leadId={lead.id}
