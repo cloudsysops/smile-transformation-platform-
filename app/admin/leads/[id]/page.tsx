@@ -40,6 +40,25 @@ export default async function AdminLeadDetailPage({ params }: Props) {
     .single();
   if (error || !lead) notFound();
 
+  let depositAmountCents: number | null = null;
+  if (lead.package_slug) {
+    const { data: packageRow } = await supabase
+      .from("packages")
+      .select("deposit_cents")
+      .eq("slug", lead.package_slug)
+      .maybeSingle();
+    const raw = packageRow?.deposit_cents;
+    const value =
+      typeof raw === "number"
+        ? raw
+        : typeof raw === "string"
+          ? Number(raw)
+          : NaN;
+    if (Number.isInteger(value) && value > 0) {
+      depositAmountCents = value;
+    }
+  }
+
   const { data: aiRows } = await supabase
     .from("lead_ai")
     .select("triage_json, messages_json")
@@ -145,7 +164,7 @@ export default async function AdminLeadDetailPage({ params }: Props) {
         <div className="rounded-lg border border-zinc-200 bg-white p-6">
           <h2 className="font-semibold">Stripe deposit</h2>
           <p className="mt-1 text-sm text-zinc-600">Create a checkout session for the deposit.</p>
-          <DepositButton leadId={lead.id} />
+          <DepositButton leadId={lead.id} amountCents={depositAmountCents} />
         </div>
         <AiActionsPanel
           leadId={lead.id}

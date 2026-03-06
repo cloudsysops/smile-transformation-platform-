@@ -26,6 +26,7 @@
 | **M9.1** AI lead responder (selling mode) | ✅ Done | “Generate Reply” returns WhatsApp + email drafts, copy-ready UI, persisted in `lead_ai.messages_json` |
 | **M10** Conversion attribution | ✅ Done | Package CTA keeps intent (`?package=`), lead capture stores UTM/referrer/landing path, admin lead detail shows attribution |
 | **M11** Sales follow-up queue | ✅ Done | Leads include next follow-up/last contacted/notes, admin queue prioritizes overdue leads, detail page includes follow-up planner |
+| **M12** Deposit pricing governance | ✅ Done | Stripe checkout amount is resolved server-side from package pricing, client amount ignored, admin deposit CTA reflects effective amount |
 
 ## Run after migration
 ```bash
