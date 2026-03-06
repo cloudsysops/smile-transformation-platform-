@@ -44,8 +44,9 @@ Operational checklist to launch safely on Vercel + Supabase + Stripe.
    - `supabase/migrations/0005_leads_follow_up_queue.sql`
    - `supabase/migrations/0006_ai_automation_foundation.sql`
    - `supabase/migrations/0007_ai_automation_jobs.sql`
+   - `supabase/migrations/0008_outbound_messages.sql`
 2. Validate RLS is enabled for:
-   - `profiles`, `packages`, `leads`, `payments`, `assets`, `itineraries`, `lead_ai`
+   - `profiles`, `packages`, `leads`, `payments`, `assets`, `itineraries`, `lead_ai`, `ai_automation_jobs`, `outbound_messages`
 3. Validate policy behavior:
    - Public can read only published packages and approved+published assets.
    - Admin-only access for leads, payments, itineraries, lead_ai.
@@ -132,6 +133,11 @@ where email = 'admin@your-domain.com';
    Expect: `POST /api/automation/followups` returns 200 and generates 24h/48h drafts only for inactive active-status leads.
 9. Trigger queue worker with secret  
    Expect: `POST /api/automation/worker` claims jobs, executes agents, retries failures with backoff, and marks exhausted jobs as `dead_letter`.
+10. Create and process one outbound draft in admin lead detail
+   Expect: message transitions `draft -> approved -> queued/sent` and updates lead contact telemetry.
+11. Validate outbound command center APIs (admin session)
+   - `GET /api/admin/outbound/metrics` returns KPI + SLA risk payload
+   - `GET /api/admin/outbound/queue` returns approved/queued/failed action queue
 
 ---
 

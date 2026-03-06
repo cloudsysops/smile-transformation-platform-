@@ -7,6 +7,7 @@ import LeadStatusForm from "../LeadStatusForm";
 import LeadFollowUpForm from "../LeadFollowUpForm";
 import DepositButton from "../DepositButton";
 import AiActionsPanel from "./AiActionsPanel";
+import OutboundQueuePanel from "../OutboundQueuePanel";
 import { ItineraryOutputSchema, LeadTriageOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
 import AdminShell from "../../_components/AdminShell";
 
@@ -93,6 +94,11 @@ export default async function AdminLeadDetailPage({ params }: Props) {
     { label: "Landing path", value: lead.landing_path as string | null | undefined },
     { label: "Referrer URL", value: lead.referrer_url as string | null | undefined },
   ];
+  const { data: outboundRows } = await supabase
+    .from("outbound_messages")
+    .select("id, lead_id, source, channel, status, subject, body_text, attempts, max_attempts, scheduled_for, sent_at, delivered_at, replied_at, failure_reason, created_at, updated_at")
+    .eq("lead_id", id)
+    .order("created_at", { ascending: false });
 
   return (
     <AdminShell
@@ -171,6 +177,32 @@ export default async function AdminLeadDetailPage({ params }: Props) {
           initialTriage={triageMaybe.success ? triageMaybe.data : null}
           initialMessage={messagesMaybe.success ? messagesMaybe.data : null}
           initialItineraries={parsedItineraries}
+        />
+        <OutboundQueuePanel
+          leadId={lead.id}
+          initialRows={(outboundRows ?? []) as Array<{
+            id: string;
+            lead_id: string;
+            source: "ai_draft" | "manual";
+            channel: "whatsapp" | "email";
+            status: "draft" | "approved" | "queued" | "sent" | "delivered" | "failed" | "replied" | "cancelled";
+            subject: string | null;
+            body_text: string;
+            attempts: number;
+            max_attempts: number;
+            scheduled_for: string;
+            sent_at: string | null;
+            delivered_at: string | null;
+            replied_at: string | null;
+            failure_reason: string | null;
+            created_at: string;
+            updated_at: string;
+          }>}
+          latestAiDraft={messagesMaybe.success ? {
+            whatsapp_message: messagesMaybe.data.whatsapp_message,
+            email_subject: messagesMaybe.data.email_subject,
+            email_body: messagesMaybe.data.email_body,
+          } : null}
         />
       </div>
     </AdminShell>

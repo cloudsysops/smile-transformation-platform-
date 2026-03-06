@@ -16,7 +16,7 @@ Checklist operativo para despliegues con GitHub + Vercel + Supabase + Stripe.
 - [ ] Deploy más reciente en estado `Ready`.
 
 ### Supabase
-- [ ] Migraciones aplicadas (`0001`, `0002`, `0003` según módulo).
+- [ ] Migraciones aplicadas (`0001` → `0008` según `STATUS.md`).
 - [ ] RLS habilitado y policies validadas.
 - [ ] Claves correctas en Vercel (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, públicas `NEXT_PUBLIC_*`).
 
@@ -69,3 +69,6 @@ Checklist operativo para despliegues con GitHub + Vercel + Supabase + Stripe.
    - `leads.status = deposit_paid`
 5. **Logs**
    - Revisar Vercel Functions logs para errores 4xx/5xx y fallos de firma de webhook.
+6. **Outbound command center**
+   - Confirmar acceso admin a `/admin/outbound`.
+   - Confirmar `GET /api/admin/outbound/metrics` y `/api/admin/outbound/queue` con sesión admin.

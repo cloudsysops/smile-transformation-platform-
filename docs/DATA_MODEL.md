@@ -12,6 +12,7 @@
 | **itineraries** | Per-package or per-lead itinerary data (non-medical) | Admin only |
 | **lead_ai** | Notes + AI outputs per lead | Admin only |
 | **ai_automation_jobs** | Durable queue for trigger-driven AI execution | Admin only |
+| **outbound_messages** | Assisted outbound queue and delivery tracking per lead | Admin only |
 
 ## Key fields
 
@@ -21,6 +22,7 @@
 - **assets**: `storage_path`, `title`, `category` (clinic\|finca\|lodging\|tour\|team\|other), `location` (Medellín\|Manizales\|Other), `tags` (text[]), `alt_text`, `approved`, `published`, `deleted_at`.
 - **lead_ai**: `lead_id`, `triage_json` (jsonb), `messages_json` (jsonb), `ops_json` (jsonb), `followup_24h_json` (jsonb), `followup_48h_json` (jsonb), `triage_completed`, `response_generated`, `itinerary_generated`, `ops_generated`, `notes`.
 - **ai_automation_jobs**: `lead_id`, `trigger_type`, `job_type`, `status`, `attempts`, `max_attempts`, `run_after`, `locked_at`, `locked_by`, `payload_json`, `error_message`.
+- **outbound_messages**: `lead_id`, `source`, `channel`, `status`, `subject`, `body_text`, `attempts`, `scheduled_for`, `sent_at`, `delivered_at`, `replied_at`, `failure_reason`, `created_by`, `approved_by`.
 - **itineraries**: optional `package_id`, optional `lead_id`, `city`, `content_json` (jsonb), legacy `day_index/title/description`.
 
 ## Admin helper
@@ -36,4 +38,5 @@
 - `supabase/migrations/0005_leads_follow_up_queue.sql`: adds sales follow-up queue fields and index (`next_follow_up_at`) on leads.
 - `supabase/migrations/0006_ai_automation_foundation.sql`: extends `lead_ai` with automation outputs and status flags for trigger-based AI execution.
 - `supabase/migrations/0007_ai_automation_jobs.sql`: creates durable trigger queue table with idempotency and retry/dead-letter lifecycle fields.
+- `supabase/migrations/0008_outbound_messages.sql`: creates assisted outbound queue table for draft/approval/send/reply lifecycle tracking.
 - `scripts/seed_packages.sql`: inserts `smile-medellin` and `smile-manizales` as published packages.
