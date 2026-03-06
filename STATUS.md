@@ -28,6 +28,7 @@
 | **M11** Sales follow-up queue | ✅ Done | Leads include next follow-up/last contacted/notes, admin queue prioritizes overdue leads, detail page includes follow-up planner |
 | **M12** Deposit pricing governance | ✅ Done | Stripe checkout amount is resolved server-side from package pricing, client amount ignored, admin deposit CTA reflects effective amount |
 | **M13** Agent automation foundation | ✅ Done | Internal server-side triggers run triage/respond after lead creation, itinerary/ops after deposit_paid, plus cron-safe 24h/48h follow-up drafts |
+| **M14** Durable automation queue | ✅ Done | Trigger events enqueue jobs in `ai_automation_jobs`; worker endpoint executes jobs with locks, retries, and dead-letter handling |
 
 ## Run after migration
 ```bash
@@ -38,7 +39,8 @@
 # 4. supabase/migrations/0004_leads_attribution.sql
 # 5. supabase/migrations/0005_leads_follow_up_queue.sql
 # 6. supabase/migrations/0006_ai_automation_foundation.sql
-# 7. scripts/seed_packages.sql
+# 7. supabase/migrations/0007_ai_automation_jobs.sql
+# 8. scripts/seed_packages.sql
 ```
 
 ## Env

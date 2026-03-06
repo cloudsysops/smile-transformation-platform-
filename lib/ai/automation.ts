@@ -7,6 +7,12 @@ import {
 } from "@/lib/ai/schemas";
 import { createLogger } from "@/lib/logger";
 import { getServerSupabase } from "@/lib/supabase/server";
+import {
+  type AutomationJobRecord,
+  type AutomationJobType,
+  type AutomationTriggerType,
+  enqueueAutomationJobs,
+} from "@/lib/automation/queue";
 
 type AutomationContext = {
   requestId?: string;
@@ -40,23 +46,34 @@ type LeadAiRow = {
   followup_48h_json: unknown;
 };
 
-type InactiveFollowupResult = {
+type InactiveFollowupEnqueueResult = {
   scanned: number;
-  generated_24h: number;
-  generated_48h: number;
+  enqueued_24h: number;
+  enqueued_48h: number;
 };
 
 const ACTIVE_FOLLOWUP_STATUSES = ["new", "contacted", "qualified"];
 const MS_PER_HOUR = 60 * 60 * 1000;
 
-function openAiConfigured(): boolean {
-  return typeof process.env.OPENAI_API_KEY === "string" && process.env.OPENAI_API_KEY.length > 0;
-}
-
 function inferCityFromLead(packageSlug: string | null | undefined): "Medellín" | "Manizales" | null {
   if (packageSlug === "smile-manizales") return "Manizales";
   if (packageSlug === "smile-medellin") return "Medellín";
   return null;
+}
+
+function normalizeMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function jobTypeForTrigger(
+  triggerType: AutomationTriggerType,
+  jobType: AutomationJobType,
+): FollowupMode | "lead_created" | "deposit_paid" {
+  if (triggerType === "lead_created") return "lead_created";
+  if (triggerType === "lead_deposit_paid") return "deposit_paid";
+  if (triggerType === "lead_inactive_24h" && jobType === "sales-responder") return "inactive_24h";
+  if (triggerType === "lead_inactive_48h" && jobType === "sales-responder") return "inactive_48h";
+  throw new Error(`Unsupported trigger/job pair: ${triggerType}/${jobType}`);
 }
 
 async function fetchLead(leadId: string): Promise<LeadRow | null> {
@@ -113,21 +130,13 @@ async function updateLeadAiById(id: string, patch: Record<string, unknown>) {
 
 async function runLeadTriageForLead(leadId: string, requestId?: string) {
   const log = createLogger(requestId);
-  if (!openAiConfigured()) {
-    log.warn("Skipping triage automation: OPENAI_API_KEY missing", { lead_id: leadId });
-    return;
-  }
-
   const lead = await fetchLead(leadId);
   if (!lead) {
     log.warn("Skipping triage automation: lead not found", { lead_id: leadId });
     return;
   }
-
   const leadAi = await getOrCreateLeadAi(leadId);
-  if (leadAi.triage_completed) {
-    return;
-  }
+  if (leadAi.triage_completed) return;
 
   const systemPrompt = await getAgentSystemPrompt("lead-triage");
   const triageRaw = await callAgent({
@@ -152,35 +161,19 @@ async function runLeadTriageForLead(leadId: string, requestId?: string) {
     triage_json: triageParsed.data,
     triage_completed: true,
   });
-  log.info("Automation triage completed", { lead_id: leadId });
 }
 
 async function runSalesResponderForLead(
   leadId: string,
   context: AutomationContext & { mode: "lead_created" | FollowupMode },
 ) {
-  const log = createLogger(context.requestId);
-  if (!openAiConfigured()) {
-    log.warn("Skipping responder automation: OPENAI_API_KEY missing", { lead_id: leadId, mode: context.mode });
-    return;
-  }
-
   const lead = await fetchLead(leadId);
-  if (!lead) {
-    log.warn("Skipping responder automation: lead not found", { lead_id: leadId, mode: context.mode });
-    return;
-  }
+  if (!lead) return;
   const leadAi = await getOrCreateLeadAi(leadId);
 
-  if (context.mode === "lead_created" && leadAi.response_generated) {
-    return;
-  }
-  if (context.mode === "inactive_24h" && leadAi.followup_24h_json) {
-    return;
-  }
-  if (context.mode === "inactive_48h" && leadAi.followup_48h_json) {
-    return;
-  }
+  if (context.mode === "lead_created" && leadAi.response_generated) return;
+  if (context.mode === "inactive_24h" && leadAi.followup_24h_json) return;
+  if (context.mode === "inactive_48h" && leadAi.followup_48h_json) return;
 
   const triageMaybe = LeadTriageOutputSchema.safeParse(leadAi.triage_json);
   const ctaUrl = context.ctaUrl ?? "https://example.com/assessment";
@@ -224,25 +217,13 @@ async function runSalesResponderForLead(
       followup_48h_json: payload,
     });
   }
-  log.info("Automation responder completed", { lead_id: leadId, mode: context.mode });
 }
 
-async function runItineraryForLead(leadId: string, requestId?: string) {
-  const log = createLogger(requestId);
-  if (!openAiConfigured()) {
-    log.warn("Skipping itinerary automation: OPENAI_API_KEY missing", { lead_id: leadId });
-    return;
-  }
-
+async function runItineraryForLead(leadId: string) {
   const lead = await fetchLead(leadId);
-  if (!lead) {
-    log.warn("Skipping itinerary automation: lead not found", { lead_id: leadId });
-    return;
-  }
+  if (!lead) return;
   const leadAi = await getOrCreateLeadAi(leadId);
-  if (leadAi.itinerary_generated) {
-    return;
-  }
+  if (leadAi.itinerary_generated) return;
 
   const supabase = getServerSupabase();
   const { data: itineraryRows, error: itineraryLookupError } = await supabase
@@ -311,27 +292,14 @@ async function runItineraryForLead(leadId: string, requestId?: string) {
   if (itineraryInsertError) {
     throw new Error(`Failed to save itinerary: ${itineraryInsertError.message}`);
   }
-
   await updateLeadAiById(leadAi.id, { itinerary_generated: true });
-  log.info("Automation itinerary completed", { lead_id: leadId });
 }
 
-async function runOpsCoordinatorForLead(leadId: string, requestId?: string) {
-  const log = createLogger(requestId);
-  if (!openAiConfigured()) {
-    log.warn("Skipping ops automation: OPENAI_API_KEY missing", { lead_id: leadId });
-    return;
-  }
-
+async function runOpsCoordinatorForLead(leadId: string) {
   const lead = await fetchLead(leadId);
-  if (!lead) {
-    log.warn("Skipping ops automation: lead not found", { lead_id: leadId });
-    return;
-  }
+  if (!lead) return;
   const leadAi = await getOrCreateLeadAi(leadId);
-  if (leadAi.ops_generated) {
-    return;
-  }
+  if (leadAi.ops_generated) return;
 
   const supabase = getServerSupabase();
   const { data: itineraryRows } = await supabase
@@ -368,73 +336,48 @@ async function runOpsCoordinatorForLead(leadId: string, requestId?: string) {
     ops_json: opsParsed.data,
     ops_generated: true,
   });
-  log.info("Automation ops completed", { lead_id: leadId });
 }
 
-export async function triggerLeadCreatedAutomation(leadId: string, context: AutomationContext = {}) {
-  const log = createLogger(context.requestId);
-  try {
-    await runLeadTriageForLead(leadId, context.requestId);
-  } catch (err) {
-    log.error("Lead-created triage automation failed", {
-      lead_id: leadId,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-  try {
-    await runSalesResponderForLead(leadId, {
-      ...context,
-      mode: "lead_created",
-    });
-  } catch (err) {
-    log.error("Lead-created responder automation failed", {
-      lead_id: leadId,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+export async function enqueueLeadCreatedAutomationJobs(
+  leadId: string,
+  context: AutomationContext = {},
+) {
+  return enqueueAutomationJobs({
+    leadId,
+    triggerType: "lead_created",
+    jobTypes: ["lead-triage", "sales-responder"],
+    payload: {
+      cta_url: context.ctaUrl ?? null,
+    },
+  });
 }
 
-export async function triggerDepositPaidAutomation(leadId: string, context: AutomationContext = {}) {
-  const log = createLogger(context.requestId);
-  try {
-    await runItineraryForLead(leadId, context.requestId);
-  } catch (err) {
-    log.error("Deposit-paid itinerary automation failed", {
-      lead_id: leadId,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
-  try {
-    await runOpsCoordinatorForLead(leadId, context.requestId);
-  } catch (err) {
-    log.error("Deposit-paid ops automation failed", {
-      lead_id: leadId,
-      error: err instanceof Error ? err.message : String(err),
-    });
-  }
+export async function enqueueDepositPaidAutomationJobs(
+  leadId: string,
+) {
+  return enqueueAutomationJobs({
+    leadId,
+    triggerType: "lead_deposit_paid",
+    jobTypes: ["itinerary-generator", "ops-coordinator"],
+    payload: {},
+  });
 }
 
-export async function runInactiveFollowupAutomation(
+export async function enqueueInactiveFollowupJobs(
   options: {
     requestId?: string;
     ctaUrl?: string;
     limit?: number;
     now?: Date;
   } = {},
-): Promise<InactiveFollowupResult> {
+): Promise<InactiveFollowupEnqueueResult> {
   const now = options.now ?? new Date();
-  const log = createLogger(options.requestId);
   const limit = options.limit ?? 200;
-  const result: InactiveFollowupResult = {
+  const result: InactiveFollowupEnqueueResult = {
     scanned: 0,
-    generated_24h: 0,
-    generated_48h: 0,
+    enqueued_24h: 0,
+    enqueued_48h: 0,
   };
-
-  if (!openAiConfigured()) {
-    log.warn("Skipping inactive followup automation: OPENAI_API_KEY missing");
-    return result;
-  }
 
   const supabase = getServerSupabase();
   const { data: leads, error } = await supabase
@@ -449,7 +392,6 @@ export async function runInactiveFollowupAutomation(
 
   for (const lead of (leads ?? []) as Array<{
     id: string;
-    status: string;
     created_at: string;
     last_contacted_at: string | null;
   }>) {
@@ -461,36 +403,66 @@ export async function runInactiveFollowupAutomation(
     if (inactiveHours < 24) continue;
 
     if (inactiveHours >= 48) {
-      try {
-        await runSalesResponderForLead(lead.id, {
-          requestId: options.requestId,
-          ctaUrl: options.ctaUrl,
-          mode: "inactive_48h",
-        });
-        result.generated_48h += 1;
-      } catch (err) {
-        log.error("Inactive 48h followup generation failed", {
-          lead_id: lead.id,
-          error: err instanceof Error ? err.message : String(err),
-        });
-      }
-      continue;
-    }
-
-    try {
-      await runSalesResponderForLead(lead.id, {
-        requestId: options.requestId,
-        ctaUrl: options.ctaUrl,
-        mode: "inactive_24h",
+      const jobs = await enqueueAutomationJobs({
+        leadId: lead.id,
+        triggerType: "lead_inactive_48h",
+        jobTypes: ["sales-responder"],
+        payload: { cta_url: options.ctaUrl ?? null },
       });
-      result.generated_24h += 1;
-    } catch (err) {
-      log.error("Inactive 24h followup generation failed", {
-        lead_id: lead.id,
-        error: err instanceof Error ? err.message : String(err),
+      result.enqueued_48h += jobs.length;
+    } else {
+      const jobs = await enqueueAutomationJobs({
+        leadId: lead.id,
+        triggerType: "lead_inactive_24h",
+        jobTypes: ["sales-responder"],
+        payload: { cta_url: options.ctaUrl ?? null },
       });
+      result.enqueued_24h += jobs.length;
     }
   }
-
   return result;
+}
+
+export async function executeAutomationJob(job: AutomationJobRecord, context: AutomationContext = {}) {
+  const log = createLogger(context.requestId);
+  const executionMode = jobTypeForTrigger(job.trigger_type, job.job_type);
+  try {
+    switch (job.job_type) {
+      case "lead-triage":
+        await runLeadTriageForLead(job.lead_id, context.requestId);
+        break;
+      case "sales-responder":
+        if (executionMode === "lead_created") {
+          await runSalesResponderForLead(job.lead_id, {
+            requestId: context.requestId,
+            ctaUrl: (job.payload_json?.cta_url as string | null | undefined) ?? context.ctaUrl,
+            mode: "lead_created",
+          });
+        } else if (executionMode === "inactive_24h" || executionMode === "inactive_48h") {
+          await runSalesResponderForLead(job.lead_id, {
+            requestId: context.requestId,
+            ctaUrl: (job.payload_json?.cta_url as string | null | undefined) ?? context.ctaUrl,
+            mode: executionMode,
+          });
+        }
+        break;
+      case "itinerary-generator":
+        await runItineraryForLead(job.lead_id);
+        break;
+      case "ops-coordinator":
+        await runOpsCoordinatorForLead(job.lead_id);
+        break;
+      default:
+        throw new Error(`Unsupported job type: ${job.job_type}`);
+    }
+  } catch (error) {
+    log.error("Automation job execution failed", {
+      job_id: job.id,
+      lead_id: job.lead_id,
+      trigger_type: job.trigger_type,
+      job_type: job.job_type,
+      error: normalizeMessage(error),
+    });
+    throw error;
+  }
 }

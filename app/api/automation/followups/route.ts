@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runInactiveFollowupAutomation } from "@/lib/ai/automation";
+import { enqueueInactiveFollowupJobs } from "@/lib/ai/automation";
 import { createLogger } from "@/lib/logger";
 import { getServerConfigSafe } from "@/lib/config/server";
 
@@ -41,11 +41,11 @@ export async function POST(request: Request) {
 
   try {
     const ctaUrl = `${new URL(request.url).origin}/assessment`;
-    const result = await runInactiveFollowupAutomation({
+    const result = await enqueueInactiveFollowupJobs({
       requestId,
       ctaUrl,
     });
-    log.info("Inactive followup automation completed", result);
+    log.info("Inactive followup automation jobs enqueued", result);
     return NextResponse.json({
       ok: true,
       ...result,

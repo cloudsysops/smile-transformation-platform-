@@ -43,6 +43,7 @@ Operational checklist to launch safely on Vercel + Supabase + Stripe.
    - `supabase/migrations/0004_leads_attribution.sql`
    - `supabase/migrations/0005_leads_follow_up_queue.sql`
    - `supabase/migrations/0006_ai_automation_foundation.sql`
+   - `supabase/migrations/0007_ai_automation_jobs.sql`
 2. Validate RLS is enabled for:
    - `profiles`, `packages`, `leads`, `payments`, `assets`, `itineraries`, `lead_ai`
 3. Validate policy behavior:
@@ -129,6 +130,8 @@ where email = 'admin@your-domain.com';
    Expect: `payments.status = succeeded`, `leads.status = deposit_paid`.
 8. Trigger follow-up automation cron with secret  
    Expect: `POST /api/automation/followups` returns 200 and generates 24h/48h drafts only for inactive active-status leads.
+9. Trigger queue worker with secret  
+   Expect: `POST /api/automation/worker` claims jobs, executes agents, retries failures with backoff, and marks exhausted jobs as `dead_letter`.
 
 ---
 
