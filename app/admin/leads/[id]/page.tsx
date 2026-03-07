@@ -6,7 +6,7 @@ import { getServerSupabase } from "@/lib/supabase/server";
 import LeadStatusForm from "../LeadStatusForm";
 import DepositButton from "../DepositButton";
 import AiActionsPanel from "./AiActionsPanel";
-import { ItineraryOutputSchema, LeadTriageOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
+import { ItineraryOutputSchema, LeadTriageOutputSchema, OpsTasksOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
 
 type Props = { params: Promise<{ id: string }> };
 const StoredMessageSchema = SalesResponderOutputSchema.extend({
@@ -40,13 +40,14 @@ export default async function AdminLeadDetailPage({ params }: Props) {
 
   const { data: aiRows } = await supabase
     .from("lead_ai")
-    .select("triage_json, messages_json")
+    .select("triage_json, messages_json, ops_json")
     .eq("lead_id", id)
     .order("created_at", { ascending: false })
     .limit(1);
   const latestAi = aiRows?.[0];
   const triageMaybe = LeadTriageOutputSchema.safeParse(latestAi?.triage_json);
   const messagesMaybe = StoredMessageSchema.safeParse(latestAi?.messages_json);
+  const opsMaybe = OpsTasksOutputSchema.safeParse(latestAi?.ops_json);
 
   const { data: itineraryRows } = await supabase
     .from("itineraries")
@@ -95,6 +96,7 @@ export default async function AdminLeadDetailPage({ params }: Props) {
           initialTriage={triageMaybe.success ? triageMaybe.data : null}
           initialMessage={messagesMaybe.success ? messagesMaybe.data : null}
           initialItineraries={parsedItineraries}
+          initialOps={opsMaybe.success ? opsMaybe.data : null}
         />
       </main>
     </div>

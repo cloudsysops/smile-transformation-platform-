@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ItineraryOutput, LeadTriageOutput, SalesResponderOutput } from "@/lib/ai/schemas";
+import type { ItineraryOutput, LeadTriageOutput, OpsTasksOutput, SalesResponderOutput } from "@/lib/ai/schemas";
 
 type StoredMessage = SalesResponderOutput & {
   cta_url?: string;
@@ -27,13 +27,15 @@ type Props = {
   initialTriage: LeadTriageOutput | null;
   initialMessage: StoredMessage | null;
   initialItineraries: StoredItinerary[];
+  initialOps: OpsTasksOutput | null;
 };
 
-export default function AiActionsPanel({ leadId, initialTriage, initialMessage, initialItineraries }: Props) {
+export default function AiActionsPanel({ leadId, initialTriage, initialMessage, initialItineraries, initialOps }: Props) {
   const [triage, setTriage] = useState<LeadTriageOutput | null>(initialTriage);
   const [message, setMessage] = useState<StoredMessage | null>(initialMessage);
   const [itineraryPreview, setItineraryPreview] = useState<ItineraryOutput | null>(null);
-  const [loading, setLoading] = useState<"triage" | "reply" | "itinerary" | null>(null);
+  const [ops, setOps] = useState<OpsTasksOutput | null>(initialOps);
+  const [loading, setLoading] = useState<"triage" | "reply" | "itinerary" | "ops" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -54,10 +56,12 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
     return res.json().catch(() => ({}));
   }
 
+  const apiBase = "/api/admin/ai";
+
   async function handleGenerateTriage() {
     setError(null);
     setLoading("triage");
-    const res = await fetch("/api/ai/triage", {
+    const res = await fetch(`${apiBase}/triage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lead_id: leadId }),
@@ -74,7 +78,7 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
   async function handleGenerateReply() {
     setError(null);
     setLoading("reply");
-    const res = await fetch("/api/ai/respond", {
+    const res = await fetch(`${apiBase}/respond`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lead_id: leadId }),
@@ -91,7 +95,7 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
   async function handleGenerateItinerary() {
     setError(null);
     setLoading("itinerary");
-    const res = await fetch("/api/ai/itinerary", {
+    const res = await fetch(`${apiBase}/itinerary`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lead_id: leadId }),
@@ -103,6 +107,23 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
       return;
     }
     setItineraryPreview(data.itinerary ?? null);
+  }
+
+  async function handleGenerateOps() {
+    setError(null);
+    setLoading("ops");
+    const res = await fetch(`${apiBase}/ops`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lead_id: leadId }),
+    });
+    const data = await safeJson(res);
+    setLoading(null);
+    if (!res.ok) {
+      setError(data?.error ?? "Failed to generate ops tasks");
+      return;
+    }
+    setOps(data.ops ?? null);
   }
 
   async function copyToClipboard(value: string, key: string) {
@@ -117,6 +138,7 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
 
   return (
     <section className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6">
+      <h2 className="text-lg font-semibold">AI Actions</h2>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
@@ -141,6 +163,14 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
           className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
         >
           {loading === "itinerary" ? "Generating…" : "Generate Itinerary"}
+        </button>
+        <button
+          type="button"
+          onClick={handleGenerateOps}
+          disabled={loading !== null}
+          className="rounded bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+        >
+          {loading === "ops" ? "Generating…" : "Generate Ops Tasks"}
         </button>
       </div>
 
@@ -223,6 +253,25 @@ export default function AiActionsPanel({ leadId, initialTriage, initialMessage, 
           </div>
         ) : (
           <p className="text-sm text-zinc-600">No reply generated yet.</p>
+        )}
+      </div>
+
+      <div className="space-y-3 rounded border border-zinc-200 p-4">
+        <h3 className="font-semibold">Ops tasks</h3>
+        {ops ? (
+          <div className="space-y-2 text-sm">
+            <p className="text-zinc-600">{ops.summary}</p>
+            <ul className="list-inside list-disc space-y-1">
+              {ops.tasks.map((t, i) => (
+                <li key={i}>
+                  <span className="font-medium">{t.title}</span> — {t.due_relative} · {t.assignee}
+                  {t.notes ? ` · ${t.notes}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="text-sm text-zinc-600">No ops tasks generated yet.</p>
         )}
       </div>
 

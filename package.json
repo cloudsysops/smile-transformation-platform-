@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "bash scripts/verify_all.sh",
     "smoke:assets": "node scripts/smoke_assets_validation.js"
   },
   "dependencies": {

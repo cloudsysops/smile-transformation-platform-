@@ -31,6 +31,17 @@ export const ItineraryOutputSchema = z.object({
   whatsapp_summary: z.string().min(1),
 }).strict();
 
+export const OpsTasksOutputSchema = z.object({
+  tasks: z.array(z.object({
+    title: z.string().min(1),
+    due_relative: z.enum(["before_arrival", "day_1", "during_stay", "after_departure"]),
+    assignee: z.enum(["coordinator", "lead", "both"]),
+    notes: z.string(),
+  }).strict()).max(8),
+  summary: z.string().min(1),
+}).strict();
+
 export type LeadTriageOutput = z.infer<typeof LeadTriageOutputSchema>;
 export type SalesResponderOutput = z.infer<typeof SalesResponderOutputSchema>;
 export type ItineraryOutput = z.infer<typeof ItineraryOutputSchema>;
+export type OpsTasksOutput = z.infer<typeof OpsTasksOutputSchema>;

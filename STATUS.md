@@ -6,7 +6,7 @@
 |-------|--------|--------------------|
 | **M8** Assets Manager + hardening | ✅ Done | CI green (`lint` + `build`), health endpoints, unified migration, admin assets fixes |
 | **M9** AI Workers (triage/reply/itinerary) | ✅ Done | Endpoints + admin UI connected, outputs persisted and visible in lead detail |
-| **Deploy** (Vercel + Stripe + Supabase) | ⏳ Pending | Prod env configured, webhook verified, smoke tests in production |
+| **Deploy** (Vercel + Stripe + Supabase) | ⏳ Pending | Prod env configured, webhook verified, smoke tests in production. **Checklist:** [docs/DEPLOY_CHECKLIST.md](docs/DEPLOY_CHECKLIST.md). **Plan para vender:** [docs/PLAN_TRABAJO_PRODUCCION.md](docs/PLAN_TRABAJO_PRODUCCION.md) |
 
 ---
 

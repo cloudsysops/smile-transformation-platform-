@@ -18,7 +18,7 @@
 - **leads**: `first_name`, `last_name`, `email`, `phone`, `country`, `package_slug`, `message`, `status` (new → deposit_paid → …).
 - **payments**: `lead_id`, `stripe_checkout_session_id`, `stripe_payment_intent_id`, `amount_cents`, `status`.
 - **assets**: `storage_path`, `title`, `category` (clinic\|finca\|lodging\|tour\|team\|other), `location` (Medellín\|Manizales\|Other), `tags` (text[]), `alt_text`, `approved`, `published`, `deleted_at`.
-- **lead_ai**: `lead_id`, `triage_json` (jsonb), `messages_json` (jsonb), `notes`.
+- **lead_ai**: `lead_id`, `triage_json` (jsonb), `messages_json` (jsonb), `ops_json` (jsonb), `notes`.
 - **itineraries**: optional `package_id`, optional `lead_id`, `city`, `content_json` (jsonb), legacy `day_index/title/description`.
 
 ## Admin helper

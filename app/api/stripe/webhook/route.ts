@@ -42,10 +42,19 @@ export async function POST(request: Request) {
     log.warn("Webhook signature verification failed", { err: String(err) });
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
+
+  log.info("Stripe event received", { type: event.type });
+
   if (event.type !== "checkout.session.completed") {
     return NextResponse.json({ received: true });
   }
   const session = event.data.object as Stripe.Checkout.Session;
+  log.info("Checkout session", { session_id: session.id, payment_status: session.payment_status });
+
+  if (session.payment_status !== "paid") {
+    log.warn("checkout.session.completed with payment_status not paid", { payment_status: session.payment_status });
+    return NextResponse.json({ received: true });
+  }
   const sessionId = session.id;
   const metadataParsed = CheckoutSessionMetadataSchema.safeParse(session.metadata ?? {});
   if (!metadataParsed.success) {
@@ -54,15 +63,22 @@ export async function POST(request: Request) {
   }
   const { lead_id: leadId } = metadataParsed.data;
   const supabase = getServerSupabase();
+  // Idempotency: only update payment if still pending (Stripe may retry)
   const { data: payment, error: updatePayError } = await supabase
     .from("payments")
     .update({ status: "succeeded", updated_at: new Date().toISOString() })
     .eq("stripe_checkout_session_id", sessionId)
+    .eq("status", "pending")
     .select("id")
-    .single();
-  if (updatePayError || !payment) {
+    .maybeSingle();
+  if (updatePayError) {
     log.error("Failed to update payment", { error: String(updatePayError) });
     return NextResponse.json({ error: "Internal server error", request_id: requestId }, { status: 500 });
+  }
+  // Already processed (retry): return 200 so Stripe stops retrying
+  if (!payment) {
+    log.info("Webhook idempotent: payment already processed", { session_id: sessionId });
+    return NextResponse.json({ received: true });
   }
   const { error: leadError } = await supabase
     .from("leads")
