@@ -30,6 +30,8 @@ Recommended pre-merge checks:
 
 ## Branch protection recommendations
 
+Reference: see `docs/BRANCH_PROTECTION_SETUP.md` for exact GitHub UI settings.
+
 ## `main`
 
 - Require PR before merge
