@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const fromMock = vi.fn();
 const constructEventMock = vi.fn();
+const fromMock = vi.fn();
 const enqueueDepositPaidAutomationJobsMock = vi.fn();
 
 vi.mock("@/lib/config/server", () => ({
   getServerConfig: () => ({
     STRIPE_SECRET_KEY: "sk_test_webhook",
-    STRIPE_WEBHOOK_SECRET: "whsec_test_webhook",
+    STRIPE_WEBHOOK_SECRET: "whsec_webhook",
   }),
 }));
 
@@ -17,16 +17,16 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-vi.mock("@/lib/ai/automation", () => ({
-  enqueueDepositPaidAutomationJobs: enqueueDepositPaidAutomationJobsMock,
-}));
-
 vi.mock("@/lib/logger", () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
   }),
+}));
+
+vi.mock("@/lib/ai/automation", () => ({
+  enqueueDepositPaidAutomationJobs: enqueueDepositPaidAutomationJobsMock,
 }));
 
 vi.mock("stripe", () => ({
@@ -38,30 +38,75 @@ vi.mock("stripe", () => ({
 }));
 
 describe("POST /api/stripe/webhook", () => {
-  const leadId = "550e8400-e29b-41d4-a716-446655440111";
-
   beforeEach(() => {
-    vi.resetModules();
-    fromMock.mockReset();
     constructEventMock.mockReset();
+    fromMock.mockReset();
     enqueueDepositPaidAutomationJobsMock.mockReset();
     enqueueDepositPaidAutomationJobsMock.mockResolvedValue([]);
   });
 
-  it("returns idempotent response when webhook event is duplicated", async () => {
+  it("ignores checkout sessions with non-payment mode", async () => {
     constructEventMock.mockReturnValue({
-      id: "evt_1",
+      id: "evt_mode",
       type: "checkout.session.completed",
-      api_version: "2026-02-25.clover",
-      livemode: false,
       data: {
         object: {
-          id: "cs_1",
-          amount_total: 50000,
-          payment_intent: "pi_1",
+          id: "cs_mode",
+          mode: "setup",
           payment_status: "paid",
-          status: "complete",
-          metadata: { lead_id: leadId },
+          metadata: { lead_id: "550e8400-e29b-41d4-a716-446655440000" },
+        },
+      },
+    });
+
+    const { POST } = await import("@/app/api/stripe/webhook/route");
+    const response = await POST(new Request("http://localhost/api/stripe/webhook", {
+      method: "POST",
+      headers: { "stripe-signature": "sig" },
+      body: "{}",
+    }));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ received: true, ignored: "unsupported_mode" });
+    expect(fromMock).not.toHaveBeenCalled();
+  });
+
+  it("ignores checkout.session.completed events that are not paid", async () => {
+    constructEventMock.mockReturnValue({
+      id: "evt_unpaid",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_unpaid",
+          mode: "payment",
+          payment_status: "unpaid",
+          metadata: { lead_id: "550e8400-e29b-41d4-a716-446655440000" },
+        },
+      },
+    });
+
+    const { POST } = await import("@/app/api/stripe/webhook/route");
+    const response = await POST(new Request("http://localhost/api/stripe/webhook", {
+      method: "POST",
+      headers: { "stripe-signature": "sig" },
+      body: "{}",
+    }));
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ received: true, ignored: "payment_not_paid" });
+    expect(fromMock).not.toHaveBeenCalled();
+  });
+
+  it("returns idempotent when webhook event is already recorded", async () => {
+    constructEventMock.mockReturnValue({
+      id: "evt_duplicate_event",
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_dup",
+          mode: "payment",
+          payment_status: "paid",
+          metadata: { lead_id: "550e8400-e29b-41d4-a716-446655440000" },
         },
       },
     });
@@ -82,32 +127,27 @@ describe("POST /api/stripe/webhook", () => {
     const { POST } = await import("@/app/api/stripe/webhook/route");
     const response = await POST(new Request("http://localhost/api/stripe/webhook", {
       method: "POST",
-      headers: { "stripe-signature": "t=1,v1=fake" },
+      headers: { "stripe-signature": "sig" },
       body: "{}",
     }));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({
-      received: true,
-      idempotent: true,
-    });
+    await expect(response.json()).resolves.toEqual({ received: true, idempotent: true });
   });
 
-  it("marks pending payment as succeeded for async success event", async () => {
-    let paymentPatch: Record<string, unknown> | null = null;
+  it("handles duplicate insert races safely after unique constraints", async () => {
+    let paymentSelectCalls = 0;
+
     constructEventMock.mockReturnValue({
-      id: "evt_2",
-      type: "checkout.session.async_payment_succeeded",
-      api_version: "2026-02-25.clover",
-      livemode: false,
+      id: "evt_race",
+      type: "checkout.session.completed",
       data: {
         object: {
-          id: "cs_2",
-          amount_total: 75000,
-          payment_intent: "pi_2",
+          id: "cs_race",
+          mode: "payment",
           payment_status: "paid",
-          status: "complete",
-          metadata: { lead_id: leadId },
+          amount_total: 150000,
+          metadata: { lead_id: "550e8400-e29b-41d4-a716-446655440000" },
         },
       },
     });
@@ -117,7 +157,7 @@ describe("POST /api/stripe/webhook", () => {
         return {
           upsert: () => ({
             select: () => ({
-              limit: async () => ({ data: [{ id: "swe_1" }], error: null }),
+              limit: async () => ({ data: [{ id: "event_row_1" }], error: null }),
             }),
           }),
           update: () => ({
@@ -130,25 +170,43 @@ describe("POST /api/stripe/webhook", () => {
           select: () => ({
             eq: () => ({
               order: () => ({
-                limit: async () => ({
-                  data: [{ id: "pay_1", lead_id: leadId, status: "pending" }],
-                  error: null,
+                limit: async () => {
+                  paymentSelectCalls += 1;
+                  if (paymentSelectCalls === 1) {
+                    return { data: [], error: null };
+                  }
+                  return {
+                    data: [{
+                      id: "payment_race_1",
+                      lead_id: "550e8400-e29b-41d4-a716-446655440000",
+                      status: "succeeded",
+                    }],
+                    error: null,
+                  };
+                },
+              }),
+            }),
+          }),
+          insert: () => ({
+            select: () => ({
+              single: async () => ({
+                data: null,
+                error: {
+                  code: "23505",
+                  message: "duplicate key value violates unique constraint",
+                },
+              }),
+            }),
+          }),
+          update: () => ({
+            eq: () => ({
+              eq: () => ({
+                select: () => ({
+                  maybeSingle: async () => ({ data: null, error: null }),
                 }),
               }),
             }),
           }),
-          update: (patch: Record<string, unknown>) => {
-            paymentPatch = patch;
-            return {
-              eq: () => ({
-                eq: () => ({
-                  select: () => ({
-                    maybeSingle: async () => ({ data: { id: "pay_1" }, error: null }),
-                  }),
-                }),
-              }),
-            };
-          },
         };
       }
       if (table === "leads") {
@@ -166,18 +224,12 @@ describe("POST /api/stripe/webhook", () => {
     const { POST } = await import("@/app/api/stripe/webhook/route");
     const response = await POST(new Request("http://localhost/api/stripe/webhook", {
       method: "POST",
-      headers: { "stripe-signature": "t=1,v1=fake" },
+      headers: { "stripe-signature": "sig" },
       body: "{}",
     }));
 
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({
-      received: true,
-    });
-    expect(paymentPatch).toMatchObject({
-      status: "succeeded",
-      stripe_payment_intent_id: "pi_2",
-    });
-    expect(enqueueDepositPaidAutomationJobsMock).toHaveBeenCalledWith(leadId);
+    await expect(response.json()).resolves.toEqual({ received: true, idempotent: true });
+    expect(enqueueDepositPaidAutomationJobsMock).toHaveBeenCalledWith("550e8400-e29b-41d4-a716-446655440000");
   });
 });

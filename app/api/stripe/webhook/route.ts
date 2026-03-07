@@ -34,7 +34,10 @@ function truncateError(error: string): string {
   return error.length > 800 ? error.slice(0, 800) : error;
 }
 
-function nextPaymentStatus(current: PaymentStatus, target: "pending" | "succeeded" | "failed"): PaymentStatus | null {
+function nextPaymentStatus(
+  current: PaymentStatus,
+  target: "pending" | "succeeded" | "failed",
+): PaymentStatus | null {
   if (target === "succeeded") {
     return current === "succeeded" ? null : "succeeded";
   }
@@ -43,6 +46,12 @@ function nextPaymentStatus(current: PaymentStatus, target: "pending" | "succeede
     return "failed";
   }
   return null;
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const candidate = error as { code?: string; message?: string };
+  return candidate.code === "23505" || candidate.message?.includes("duplicate key value violates unique constraint") === true;
 }
 
 /** Stripe webhook: MUST use raw body for signature verification. */
@@ -87,6 +96,21 @@ export async function POST(request: Request) {
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
+  if (session.mode !== "payment") {
+    log.info("Ignoring checkout session with unsupported mode", {
+      session_id: session.id,
+      mode: session.mode,
+    });
+    return NextResponse.json({ received: true, ignored: "unsupported_mode" });
+  }
+  if (event.type === "checkout.session.completed" && session.payment_status !== "paid") {
+    log.info("Ignoring checkout session with non-paid status", {
+      session_id: session.id,
+      payment_status: session.payment_status,
+    });
+    return NextResponse.json({ received: true, ignored: "payment_not_paid" });
+  }
+
   const targetStatus = resolvePaymentFromWebhookEvent(event.type, session);
   const sessionId = session.id;
   const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : null;
@@ -150,7 +174,7 @@ export async function POST(request: Request) {
       if (!leadIdFromMetadata) {
         const warnMessage = "Webhook session not found in payments and lead metadata missing";
         log.warn(warnMessage, { session_id: sessionId, event_id: event.id });
-        await supabase
+        const { error: ignoredUpdateError } = await supabase
           .from("stripe_webhook_events")
           .update({
             status: "ignored",
@@ -159,6 +183,9 @@ export async function POST(request: Request) {
             updated_at: now,
           })
           .eq("id", eventRowId);
+        if (ignoredUpdateError) {
+          throw new Error(`Failed to mark webhook event ignored: ${ignoredUpdateError.message}`);
+        }
         return NextResponse.json({ received: true });
       }
 
@@ -176,10 +203,29 @@ export async function POST(request: Request) {
         .select("id, lead_id")
         .single();
       if (createPaymentError || !createdPayment) {
-        throw new Error(`Failed to create payment from webhook: ${String(createPaymentError)}`);
+        if (isUniqueViolation(createPaymentError)) {
+          const { data: raceRows, error: raceLookupError } = await supabase
+            .from("payments")
+            .select("id, lead_id, status")
+            .eq("stripe_checkout_session_id", sessionId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          if (raceLookupError || !raceRows?.[0]) {
+            throw new Error(`Failed to recover payment after duplicate insert race: ${String(raceLookupError ?? createPaymentError)}`);
+          }
+          const recovered = raceRows[0] as PaymentLookupRow;
+          paymentId = recovered.id;
+          if (typeof recovered.lead_id === "string" && recovered.lead_id.length > 0) {
+            leadIdToUpdate = recovered.lead_id;
+          }
+          idempotentReplay = recovered.status === "succeeded";
+        } else {
+          throw new Error(`Failed to create payment from webhook: ${String(createPaymentError)}`);
+        }
+      } else {
+        paymentId = createdPayment.id as string;
+        leadIdToUpdate = createdPayment.lead_id as string;
       }
-      paymentId = createdPayment.id as string;
-      leadIdToUpdate = createdPayment.lead_id as string;
     } else {
       if (paymentRows.length > 1) {
         log.warn("Multiple payments found for Stripe session; using latest row", {
@@ -261,7 +307,7 @@ export async function POST(request: Request) {
       }
     }
 
-    await supabase
+    const { error: processedUpdateError } = await supabase
       .from("stripe_webhook_events")
       .update({
         status: "processed",
@@ -271,6 +317,9 @@ export async function POST(request: Request) {
         updated_at: now,
       })
       .eq("id", eventRowId);
+    if (processedUpdateError) {
+      throw new Error(`Failed to mark webhook event processed: ${processedUpdateError.message}`);
+    }
 
     log.info("Stripe webhook processed", {
       event_id: event.id,
@@ -283,7 +332,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true, ...(idempotentReplay ? { idempotent: true } : {}) });
   } catch (error) {
     const message = truncateError(normalizeError(error));
-    await supabase
+    const { error: failedUpdateError } = await supabase
       .from("stripe_webhook_events")
       .update({
         status: "failed",
@@ -292,6 +341,13 @@ export async function POST(request: Request) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", eventRowId);
+    if (failedUpdateError) {
+      log.error("Failed to update webhook event failure status", {
+        event_id: event.id,
+        failure_update_error: failedUpdateError.message,
+      });
+    }
+
     log.error("Stripe webhook processing failed", {
       event_id: event.id,
       event_type: event.type,
