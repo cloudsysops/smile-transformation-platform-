@@ -30,9 +30,38 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const parsed = BodySchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid body: lead_id (UUID) and amount_cents (positive integer) required", request_id: requestId },
+        { status: 400 }
+      );
     }
     const { lead_id, amount_cents, success_url, cancel_url } = parsed.data;
+
+    const supabase = getServerSupabase();
+    const { data: lead, error: leadErr } = await supabase
+      .from("leads")
+      .select("id, status")
+      .eq("id", lead_id)
+      .maybeSingle();
+    if (leadErr) {
+      log.error("Failed to fetch lead", { error: leadErr.message, lead_id });
+      return NextResponse.json(
+        { error: "Internal server error", request_id: requestId },
+        { status: 500 }
+      );
+    }
+    if (!lead) {
+      return NextResponse.json(
+        { error: "Lead not found", request_id: requestId },
+        { status: 400 }
+      );
+    }
+    if (lead.status === "deposit_paid") {
+      return NextResponse.json(
+        { error: "Deposit already paid for this lead", request_id: requestId },
+        { status: 400 }
+      );
+    }
 
     const stripe = new Stripe(config.STRIPE_SECRET_KEY);
     const origin = new URL(request.url).origin;
@@ -53,7 +82,6 @@ export async function POST(request: Request) {
       metadata: { lead_id },
     });
 
-    const supabase = getServerSupabase();
     const { error } = await supabase.from("payments").insert({
       lead_id,
       stripe_checkout_session_id: session.id,

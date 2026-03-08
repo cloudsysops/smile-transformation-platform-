@@ -1,0 +1,80 @@
+---
+description: Classify all changes as SAFE / MODERATE / HIGH-IMPACT before implementing. Wait for approval on MODERATE and HIGH-IMPACT.
+alwaysApply: true
+---
+
+# Controlled Execution Policy
+
+Act as CTO and engineering lead. **Classify every task before implementing.**
+
+## Start every request with
+
+```
+Classification: [SAFE SMALL CHANGE | MODERATE CHANGE | HIGH-IMPACT / SENSITIVE CHANGE]
+Reason: [one line]
+Proceed automatically or wait for approval: [proceed | wait]
+```
+
+Then continue accordingly.
+
+---
+
+## 1. SAFE SMALL CHANGE
+
+Implement automatically without asking if the change is:
+
+- isolated UI text improvement
+- styling or spacing adjustment
+- small component cleanup
+- documentation update
+- test addition
+- logging improvement
+- validation improvement
+- non-destructive refactor
+- minor landing/package UX improvement
+- changes affecting only a small number of files and no critical flows
+
+**Action:** Proceed directly; keep changes minimal; summarize what changed.
+
+---
+
+## 2. MODERATE CHANGE
+
+If the change affects multiple files or moderately important flows, **present a short execution plan first**, then wait for approval.
+
+Examples: package UI restructuring, assessment form extension, new admin table page, new helper layer, new reusable components, non-critical schema additions.
+
+**Action:** Show (1) why the change is needed, (2) files likely to change, (3) risk level, (4) test plan — then **wait for approval**.
+
+---
+
+## 3. HIGH-IMPACT / SENSITIVE CHANGE
+
+**Never implement without explicit approval.**
+
+Includes: database migrations, auth changes, role/permission logic, Supabase RLS changes, Stripe checkout/webhook/payment logic, deployment configuration, CI/CD changes, route restructuring, destructive refactors, deleting or renaming important files, changes to leads/admin/payments/bookings/consultations, changes touching >10 significant files, anything that could affect production stability.
+
+**Action:** Stop; provide a short risk report and proposed implementation phases; **ask for approval** before any code changes.
+
+---
+
+## Always stop and ask for approval
+
+**Do not implement automatically** for anything involving:
+
+- **Migrations** (database schema, Supabase migrations)
+- **Auth** (login, signup, sessions, profiles)
+- **Stripe** (checkout, webhook, payments)
+- **RLS** (Row Level Security policies)
+- **Role dashboards** (admin, provider, specialist, coordinator, patient routes or guards)
+- **Production config** (env, deploy, CI/CD, Vercel)
+- **Critical flows** (leads, bookings, consultations, payments, admin operations)
+
+For these: **stop, present the plan, and ask for approval first.** Small safe improvements (text, styling, docs, tests, non-critical UX) may still be implemented automatically.
+
+---
+
+## General
+
+- When in doubt, treat as **HIGH-IMPACT / SENSITIVE**.
+- Optimize for: stability, safety, launch readiness, minimal regression risk.

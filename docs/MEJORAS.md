@@ -23,9 +23,9 @@ Completar en este orden. No lanzar sin esto.
 
 | # | Mejora | Dónde | Estado |
 |---|--------|-------|--------|
-| 1 | **Deploy en Vercel** — repo conectado, env configurados, deploy desde `main` | [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md) §1 | ⏳ Pendiente |
-| 2 | **Webhook Stripe en prod** — URL correcta, evento `checkout.session.completed`, secret en Vercel, redeploy | §2 | ⏳ Pendiente |
-| 3 | **Smoke en prod** — `/api/health` y `/api/health/ready` en 200; flujo assessment → lead → depósito → checkout; comprobar DB | §3 | ⏳ Pendiente |
+| 1 | **Deploy en Vercel** — repo conectado, env configurados, deploy desde rama (dev) | [DEPLOY_CHECKLIST.md](DEPLOY_CHECKLIST.md) §1 | ✅ Hecho (dev) |
+| 2 | **Webhook Stripe en prod** — URL correcta, evento `checkout.session.completed`, secret en Vercel, redeploy | §2 | ✅ Configurado; falta probar "Send test webhook" |
+| 3 | **Smoke en prod** — `/api/health` y `/api/health/ready` en 200; flujo assessment → lead → depósito → checkout; comprobar DB | §3 | 🔶 Health OK; falta flujo completo una vez |
 
 Cuando todo esté hecho: marcar track **Deploy** como ✅ en [STATUS.md](../STATUS.md).
 

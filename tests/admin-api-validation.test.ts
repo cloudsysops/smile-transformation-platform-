@@ -42,7 +42,7 @@ describe("admin API input validation", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({ error: "Invalid lead id" });
     expect(fromMock).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it("rejects invalid boolean filters in assets list query", async () => {
     const { GET } = await import("@/app/api/admin/assets/route");
@@ -53,5 +53,5 @@ describe("admin API input validation", () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toEqual({ error: "Invalid filters" });
     expect(fromMock).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 });

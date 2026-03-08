@@ -1,0 +1,90 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { requireSpecialist } from "@/lib/auth";
+import { getSpecialistDashboardData } from "@/lib/dashboard-data";
+
+export default async function SpecialistDashboardPage() {
+  let profile;
+  try {
+    const ctx = await requireSpecialist();
+    profile = ctx.profile;
+  } catch {
+    redirect("/login?next=/specialist");
+  }
+  const specialistId = profile.specialist_id;
+  if (!specialistId) {
+    return (
+      <div className="min-h-screen bg-zinc-50">
+        <header className="border-b border-zinc-200 bg-white px-6 py-4">
+          <div className="mx-auto flex max-w-4xl items-center justify-between">
+            <nav className="flex items-center gap-3">
+              <Link href="/specialist" className="text-sm font-medium text-zinc-900 underline">
+                Specialist
+              </Link>
+            </nav>
+            <h1 className="text-xl font-semibold">Specialist dashboard</h1>
+          </div>
+        </header>
+        <main className="mx-auto max-w-4xl px-6 py-8">
+          <p className="text-zinc-600">Your account is not linked to a specialist. Contact an admin.</p>
+        </main>
+      </div>
+    );
+  }
+  const data = await getSpecialistDashboardData(specialistId);
+  const specialist = data.specialist as { id: string; name: string; specialty: string; city: string; approval_status: string; published: boolean } | null;
+  const consultations = data.consultations as { id: string; lead_id: string; status: string; requested_at: string | null; scheduled_at: string | null }[];
+
+  return (
+    <div className="min-h-screen bg-zinc-50">
+      <header className="border-b border-zinc-200 bg-white px-6 py-4">
+        <div className="mx-auto flex max-w-4xl items-center justify-between">
+          <nav className="flex flex-wrap items-center gap-3">
+            <Link href="/specialist" className="text-sm font-medium text-zinc-900 underline">
+              Overview
+            </Link>
+          </nav>
+          <h1 className="text-xl font-semibold">Specialist dashboard</h1>
+        </div>
+      </header>
+      <main className="mx-auto max-w-4xl px-6 py-8">
+        <h2 className="mb-6 text-2xl font-semibold">
+          {specialist?.name ?? "Specialist"} {specialist?.specialty ? ` · ${specialist.specialty}` : ""}
+        </h2>
+        <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-5">
+          <p className="text-sm font-medium text-zinc-500">Consultation requests</p>
+          <p className="mt-1 text-2xl font-semibold">{consultations.length}</p>
+        </div>
+        <div>
+          <h3 className="mb-2 text-lg font-medium">Consultations</h3>
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+            {consultations.length === 0 ? (
+              <p className="p-6 text-sm text-zinc-500">No consultation requests yet.</p>
+            ) : (
+              <table className="min-w-full text-left text-sm">
+                <thead className="border-b border-zinc-200 bg-zinc-50">
+                  <tr>
+                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">Lead ID</th>
+                    <th className="px-4 py-3 font-medium">Requested</th>
+                    <th className="px-4 py-3 font-medium">Scheduled</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {consultations.slice(0, 15).map((c) => (
+                    <tr key={c.id} className="border-b border-zinc-100">
+                      <td className="px-4 py-3">{c.status}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{c.lead_id.slice(0, 8)}…</td>
+                      <td className="px-4 py-3 text-zinc-600">{c.requested_at ? new Date(c.requested_at).toLocaleDateString() : "—"}</td>
+                      <td className="px-4 py-3 text-zinc-600">{c.scheduled_at ? new Date(c.scheduled_at).toLocaleDateString() : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

@@ -7,10 +7,10 @@ Checklist oficial para el sprint **Deploy & production verification**. Completar
 ## Pre-requisitos (local)
 
 - [ ] Código actualizado desde `main` (o rama de deploy).
-- [ ] Ejecutar verificación pre-deploy:  
+- [x] Ejecutar verificación pre-deploy:  
   `npm run verify`  
-  (equivale a: lint → test → build). Debe terminar sin errores.
-- [ ] Migraciones de Supabase aplicadas en el proyecto de producción; seed de paquetes ejecutado si aplica.
+  (equivale a: lint → test → build). Debe terminar sin errores. *(Verificado por QA Fase 3.)*
+- [ ] Migraciones de Supabase aplicadas en el proyecto de producción; seed de paquetes ejecutado si aplica. Para completar: comprobar en Supabase (SQL Editor o CLI) que las tablas necesarias existen y que el seed de paquetes se ha ejecutado si aplica.
 
 ---
 
@@ -48,16 +48,18 @@ Checklist oficial para el sprint **Deploy & production verification**. Completar
   - [ ] En Stripe, "Send test webhook" para `checkout.session.completed`, o
   - [ ] Realizar un pago de prueba (modo test) y completar el checkout.
 - [ ] Verificar que el endpoint responde **200** (en Stripe o en logs de Vercel).
-- [ ] Verificar en **Supabase** que el registro en `payments` y el estado del lead se actualizan correctamente.
+- [ ] Verificar en **Supabase** que el registro en `payments` y el estado del lead se actualizan correctamente.  
+  **Para completar:** Stripe Dashboard → Webhooks → tu endpoint → Send test webhook (evento `checkout.session.completed`) → comprobar respuesta 200. Ver [TEST_FIRST_SALE.md](TEST_FIRST_SALE.md) (Optional checks).
 
 ---
 
 ## 3. Smoke (pruebas en producción)
 
-- [ ] **Health:**
-  - [ ] `GET https://<tu-dominio>/api/health` → **200**
-  - [ ] `GET https://<tu-dominio>/api/health/ready` → **200**
-- [ ] **Flujo completo (una pasada):**
+- [x] **Health:** *(Verificado por QA Fase 3 para dev URL.)*
+  - [x] `GET https://<tu-dominio>/api/health` → **200**
+  - [x] `GET https://<tu-dominio>/api/health/ready` → **200**
+- [ ] **Flujo completo (una pasada):**  
+  **Para completar:** Ir a /assessment, rellenar y enviar → redirect a /thank-you?lead_id=...; login admin, abrir ese lead, Collect deposit, completar Stripe (4242...); ver success_url con ?paid=1; comprobar en Supabase payments (status succeeded, stripe_checkout_session_id) y leads (status deposit_paid). Ver [TEST_FIRST_SALE.md](TEST_FIRST_SALE.md) pasos 1–6.
   - [ ] Completar el formulario de assessment en el sitio público.
   - [ ] Comprobar que se crea el lead (admin o DB).
   - [ ] En admin: abrir el lead y solicitar depósito (Collect deposit).

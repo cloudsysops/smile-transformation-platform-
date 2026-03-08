@@ -46,20 +46,20 @@ export async function POST(request: Request) {
   log.info("Stripe event received", { type: event.type });
 
   if (event.type !== "checkout.session.completed") {
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true }, { status: 200 });
   }
   const session = event.data.object as Stripe.Checkout.Session;
-  log.info("Checkout session", { session_id: session.id, payment_status: session.payment_status });
+  // Do not log session object or any payment/card data
 
   if (session.payment_status !== "paid") {
-    log.warn("checkout.session.completed with payment_status not paid", { payment_status: session.payment_status });
-    return NextResponse.json({ received: true });
+    log.warn("checkout.session.completed with payment_status not paid");
+    return NextResponse.json({ received: true }, { status: 200 });
   }
   const sessionId = session.id;
   const metadataParsed = CheckoutSessionMetadataSchema.safeParse(session.metadata ?? {});
   if (!metadataParsed.success) {
     log.warn("checkout.session.completed with invalid lead_id metadata");
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true }, { status: 200 });
   }
   const { lead_id: leadId } = metadataParsed.data;
   const supabase = getServerSupabase();
@@ -73,12 +73,12 @@ export async function POST(request: Request) {
     .maybeSingle();
   if (updatePayError) {
     log.error("Failed to update payment", { error: String(updatePayError) });
-    return NextResponse.json({ error: "Internal server error", request_id: requestId }, { status: 500 });
+    return NextResponse.json({ received: true }, { status: 200 });
   }
   // Already processed (retry): return 200 so Stripe stops retrying
   if (!payment) {
-    log.info("Webhook idempotent: payment already processed", { session_id: sessionId });
-    return NextResponse.json({ received: true });
+    log.info("Webhook idempotent: payment already processed");
+    return NextResponse.json({ received: true }, { status: 200 });
   }
   const { error: leadError } = await supabase
     .from("leads")
@@ -87,6 +87,15 @@ export async function POST(request: Request) {
   if (leadError) {
     log.error("Failed to update lead status", { error: leadError.message });
   }
-  log.info("Webhook processed: payment succeeded, lead deposit_paid", { lead_id: leadId, payment_id: payment.id });
-  return NextResponse.json({ received: true });
+
+  const { error: bookingError } = await supabase
+    .from("bookings")
+    .update({ status: "deposit_paid", updated_at: new Date().toISOString() })
+    .eq("lead_id", leadId);
+  if (bookingError) {
+    log.warn("Failed to update booking status", { error: bookingError.message });
+  }
+
+  log.info("Webhook processed: payment succeeded, lead deposit_paid");
+  return NextResponse.json({ received: true }, { status: 200 });
 }

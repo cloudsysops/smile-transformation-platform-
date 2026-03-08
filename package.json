@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "bash scripts/verify_all.sh",
-    "smoke:assets": "node scripts/smoke_assets_validation.js"
+    "smoke:assets": "node scripts/smoke_assets_validation.js",
+    "db:migrate": "bash scripts/run_migrations.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.9.0",
