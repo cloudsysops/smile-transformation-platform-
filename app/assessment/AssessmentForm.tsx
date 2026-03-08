@@ -58,8 +58,11 @@ export default function AssessmentForm({ packages, prefillPackageSlug = "" }: Pr
         return;
       }
       const leadId = typeof data.lead_id === "string" ? data.lead_id : null;
+      const recommendedSlug = typeof data.recommended_package_slug === "string" ? data.recommended_package_slug : "";
       if (leadId) {
-        router.push(`/thank-you?lead_id=${encodeURIComponent(leadId)}`);
+        const params = new URLSearchParams({ lead_id: leadId });
+        if (recommendedSlug) params.set("recommended_package_slug", recommendedSlug);
+        router.push(`/thank-you?${params.toString()}`);
         return;
       }
       setStatus("success");

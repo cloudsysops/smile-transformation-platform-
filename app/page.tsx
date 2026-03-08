@@ -133,7 +133,7 @@ export default async function Home() {
       {/* Announcement bar */}
       <div className="bg-emerald-950/90 border-b border-emerald-800/50 text-center py-2 px-4">
         <p className="text-sm text-emerald-100">
-          Free evaluation — no commitment. We respond within 24 hours.{" "}
+          Free Smile Evaluation — no commitment. We respond within 24 hours.{" "}
           <Link href="/assessment" className="font-semibold text-white underline underline-offset-2 hover:text-emerald-200">
             Start free
           </Link>
@@ -151,7 +151,7 @@ export default async function Home() {
               href="/assessment"
               className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 sm:px-5 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
-              Start Free Evaluation
+              Free Smile Evaluation
             </Link>
             <Link
               href="/#packages"
@@ -191,7 +191,7 @@ export default async function Home() {
                   href="/assessment"
                   className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-zinc-900 hover:bg-zinc-100 sm:w-auto focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
                 >
-                  Start Free Evaluation
+                  Free Smile Evaluation
                 </Link>
                 <Link
                   href="/#packages"

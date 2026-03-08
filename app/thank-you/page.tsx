@@ -1,10 +1,18 @@
 import Link from "next/link";
+import { getPublishedPackageBySlug } from "@/lib/packages";
 import { WhatsAppButton } from "../components/WhatsAppButton";
 
-type Props = { searchParams: Promise<{ lead_id?: string }> };
+const RECOMMENDATION_DISCLAIMER =
+  "This recommendation is based on the information provided and serves as an orientation only. Final treatment planning belongs to the specialist.";
+
+type Props = { searchParams: Promise<{ lead_id?: string; recommended_package_slug?: string }> };
 
 export default async function ThankYouPage({ searchParams }: Props) {
-  const { lead_id } = await searchParams;
+  const { lead_id, recommended_package_slug } = await searchParams;
+  const recommendedPackage =
+    recommended_package_slug?.trim() ?
+      await getPublishedPackageBySlug(recommended_package_slug.trim())
+    : null;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -22,6 +30,25 @@ export default async function ThankYouPage({ searchParams }: Props) {
           Thank you for your interest in Smile Transformation. Our team will review your details and
           get in touch within 24 hours.
         </p>
+
+        {recommendedPackage && (
+          <div className="mt-6 rounded-xl border border-zinc-700 bg-zinc-900/80 p-6 text-left">
+            <h2 className="text-sm font-semibold text-white">Recommended package (orientation)</h2>
+            <p className="mt-1 font-medium text-zinc-200">{recommendedPackage.name}</p>
+            {recommendedPackage.deposit_cents != null && recommendedPackage.deposit_cents > 0 && (
+              <p className="mt-1 text-sm text-zinc-400">
+                Deposit: ${(recommendedPackage.deposit_cents / 100).toFixed(2)} USD
+              </p>
+            )}
+            <p className="mt-3 text-xs text-zinc-500 italic">{RECOMMENDATION_DISCLAIMER}</p>
+            <Link
+              href={`/packages/${recommendedPackage.slug}`}
+              className="mt-3 inline-block text-sm font-medium text-emerald-400 hover:text-emerald-300"
+            >
+              View package details →
+            </Link>
+          </div>
+        )}
 
         <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-900/80 p-6 text-left">
           <h2 className="text-sm font-semibold text-white">Next steps</h2>
@@ -53,7 +80,16 @@ export default async function ThankYouPage({ searchParams }: Props) {
           <Link href="/#packages" className="text-sm font-medium text-zinc-400 underline hover:text-white">
             View packages
           </Link>
+          <Link href="/signup" className="text-sm font-medium text-zinc-400 underline hover:text-white">
+            Create account
+          </Link>
+          <Link href="/login?next=/patient" className="text-sm font-medium text-zinc-400 underline hover:text-white">
+            Log in to your dashboard
+          </Link>
         </div>
+        <p className="mt-4 text-center text-sm text-zinc-500">
+          Create an account with the same email to see your journey and pay the deposit online.
+        </p>
       </main>
     </div>
   );

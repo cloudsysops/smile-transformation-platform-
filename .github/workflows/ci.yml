@@ -13,6 +13,8 @@ on:
       - main
       - staging
       - dev
+      - "feature/**"
+      - "hotfix/**"
   workflow_dispatch:
 
 concurrency:

@@ -3,8 +3,10 @@ import Link from "next/link";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { getServerSupabase } from "@/lib/supabase/server";
+import { getPublishedPackages } from "@/lib/packages";
 import LeadStatusForm from "../LeadStatusForm";
 import LeadFollowUpForm from "../LeadFollowUpForm";
+import LeadRecommendationForm from "../LeadRecommendationForm";
 import DepositButton from "../DepositButton";
 import AiActionsPanel from "./AiActionsPanel";
 import OutboundQueuePanel from "../OutboundQueuePanel";
@@ -41,12 +43,13 @@ export default async function AdminLeadDetailPage({ params }: Props) {
     .single();
   if (error || !lead) notFound();
 
+  const packageSlugForDeposit = (lead.recommended_package_slug as string | null)?.trim() || (lead.package_slug as string | null)?.trim() || null;
   let depositAmountCents: number | null = null;
-  if (lead.package_slug) {
+  if (packageSlugForDeposit) {
     const { data: packageRow } = await supabase
       .from("packages")
       .select("deposit_cents")
-      .eq("slug", lead.package_slug)
+      .eq("slug", packageSlugForDeposit)
       .maybeSingle();
     const raw = packageRow?.deposit_cents;
     const value =
@@ -100,6 +103,9 @@ export default async function AdminLeadDetailPage({ params }: Props) {
     .eq("lead_id", id)
     .order("created_at", { ascending: false });
 
+  const publishedPackages = await getPublishedPackages();
+  const packageOptions = publishedPackages.map((p) => ({ id: p.id, slug: p.slug, name: p.name }));
+
   return (
     <AdminShell
       title={`Lead: ${lead.first_name} ${lead.last_name}`}
@@ -118,7 +124,13 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             <div><dt className="font-medium text-zinc-500">Email</dt><dd>{lead.email}</dd></div>
             {lead.phone && <div><dt className="font-medium text-zinc-500">Phone</dt><dd>{lead.phone}</dd></div>}
             {lead.country && <div><dt className="font-medium text-zinc-500">Country</dt><dd>{lead.country}</dd></div>}
-            {lead.package_slug && <div><dt className="font-medium text-zinc-500">Package</dt><dd>{lead.package_slug}</dd></div>}
+            {lead.package_slug && <div><dt className="font-medium text-zinc-500">Package (form)</dt><dd>{lead.package_slug}</dd></div>}
+            {(lead.recommended_package_slug != null && lead.recommended_package_slug !== "") && (
+              <div>
+                <dt className="font-medium text-zinc-500">Recommended package</dt>
+                <dd>{lead.recommended_package_slug}</dd>
+              </div>
+            )}
             <div><dt className="font-medium text-zinc-500">Status</dt><dd>{lead.status}</dd></div>
             {lead.last_contacted_at && (
               <div>
@@ -160,6 +172,11 @@ export default async function AdminLeadDetailPage({ params }: Props) {
           </dl>
         </div>
         <LeadStatusForm leadId={lead.id} currentStatus={lead.status} />
+        <LeadRecommendationForm
+          leadId={lead.id}
+          currentRecommendedSlug={(lead.recommended_package_slug as string | null) ?? null}
+          packages={packageOptions}
+        />
         <LeadFollowUpForm
           leadId={lead.id}
           currentStatus={lead.status}

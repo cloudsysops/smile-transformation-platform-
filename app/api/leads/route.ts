@@ -76,6 +76,8 @@ export async function POST(request: Request) {
         landing_path: data.landing_path ?? null,
         referrer_url: data.referrer_url ?? null,
         status: "new",
+        recommended_package_slug: packageSlug,
+        recommended_package_id: packageId,
       })
       .select("id")
       .single();
@@ -114,7 +116,14 @@ export async function POST(request: Request) {
           error: err instanceof Error ? err.message : String(err),
         });
       });
-    return NextResponse.json({ lead_id: lead.id, request_id: requestId }, { status: 201 });
+    return NextResponse.json(
+      {
+        lead_id: lead.id,
+        recommended_package_slug: packageSlug ?? undefined,
+        request_id: requestId,
+      },
+      { status: 201 }
+    );
   } catch (err) {
     log.error("Leads API error", { err: String(err) });
     return NextResponse.json(

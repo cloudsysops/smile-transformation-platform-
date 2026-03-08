@@ -14,6 +14,10 @@ Smile Transformation is a **curated private medical tourism platform**. Access i
 
 ---
 
+## Patient signup (optional)
+
+- **Patients** can create an account at **`/signup`**. After Supabase Auth sign-up, **`POST /api/signup`** creates a profile with `role = 'patient'`. No public signup for other roles.
+
 ## Who cannot sign up publicly
 
 - **Providers** and **specialists** are never created via public signup. Only admins create and approve them; admins (or a future invite flow) create the corresponding **profiles** with `role` and `provider_id` or `specialist_id`.

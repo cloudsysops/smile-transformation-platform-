@@ -39,6 +39,7 @@
 | **Admin Overview** | ✅ Done | `/admin` → `/admin/overview`. KPIs, navegación Leads/Assets. [DASHBOARDS_POR_ROL](docs/DASHBOARDS_POR_ROL.md). |
 | **Auth + role dashboards (0011)** | ✅ Done | Migration 0011: profiles (role, provider_id, specialist_id). Login `/login`, dashboards `/provider`, `/specialist`, `/coordinator`, `/patient`. [AUTH_AND_ROLES](docs/AUTH_AND_ROLES.md), [DASHBOARD_ROLES](docs/DASHBOARD_ROLES.md). |
 | **Auditoría buenas prácticas** | ✅ Hecho (2026-03) | [AUDITORIA_RESULTADO](docs/AUDITORIA_RESULTADO.md). [TAREAS_AUDITORIA](docs/TAREAS_AUDITORIA_BUENAS_PRACTICAS.md). |
+| **Production readiness + role dashboards + sales flow** | ✅ Done | Auth + roles (profiles); /login, optional /signup (patient); role redirects; role guards; dashboards /patient, /provider, /specialist, /coordinator, /admin; lead **recommended package** (thank-you, admin override, patient dashboard); patient **Pay deposit** (Stripe checkout for own lead); migration 0020. [AUTH_AND_ROLES](docs/AUTH_AND_ROLES.md), [DASHBOARD_ROLES](docs/DASHBOARD_ROLES.md), [TEST_FIRST_SALE](docs/TEST_FIRST_SALE.md). |
 
 ## Run after migration
 Aplicar migraciones en orden lexicográfico **0001 → 0018**. Desde repo (con Supabase enlazado): `npm run db:migrate`. Lista completa: [supabase/migrations/MIGRATION_ORDER.md](supabase/migrations/MIGRATION_ORDER.md). Luego opcional: `scripts/seed_packages.sql`, `scripts/seed_marketplace_foundation.sql`.

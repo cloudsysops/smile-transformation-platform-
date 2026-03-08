@@ -1,6 +1,22 @@
 # Branch Protection Setup (GitHub) — Copy/Paste Runbook
 
-Use this runbook to enforce the new workflow (`dev` -> `staging` -> `main`) in GitHub.
+Guía para proteger ramas en GitHub. **Guía maestra:** [GITHUB_ENTERPRISE_SETUP.md](GITHUB_ENTERPRISE_SETUP.md).
+
+## Modo simple (solo `main`) — recomendado para SaaS con un solo deploy
+
+Si solo usas la rama `main` y un proyecto Vercel:
+
+1. **Settings** → **Branches** → **Add rule** → Branch name: `main`.
+2. Activar: **Require a pull request**, **Require status checks** → marcar `lint-and-build`, **Require branch up to date**, **Do not allow bypassing**.
+3. Guardar. Con esto nadie puede mergear a `main` sin PR y sin CI en verde.
+
+El resto de ramas (`feature/*`, `hotfix/*`) no necesitan protección; el merge siempre será a `main` por PR.
+
+---
+
+## Modo completo (dev → staging → main)
+
+Use this runbook to enforce the full workflow (`dev` -> `staging` -> `main`) in GitHub.
 
 ## Prerequisites
 

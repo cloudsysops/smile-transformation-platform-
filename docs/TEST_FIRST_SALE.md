@@ -19,8 +19,9 @@ Use this to verify the full flow from lead creation to deposit payment and statu
 2. Click **Start Free Assessment** (or **View Packages** → choose a package → **Start with this package**).
 3. Fill the assessment form: first name, last name, email (required); optionally phone, country, package, message.
 4. Submit the form.
-5. You should be redirected to **Thank you** with a reference (e.g. `/thank-you?lead_id=<uuid>`).
+5. You should be redirected to **Thank you** with a reference and, if you selected a package, a **recommended package** block (orientation only; disclaimer shown).
 6. Note the `lead_id` from the URL or the page (reference).
+7. **Optional:** Create a patient account at **/signup** with the same email; after login you can see the lead in **/patient** and use **Pay deposit** to complete checkout yourself.
 
 ### 2. Open admin
 
@@ -30,10 +31,9 @@ Use this to verify the full flow from lead creation to deposit payment and statu
 
 ### 3. Collect deposit
 
-1. Open the **lead detail** (click the lead).
-2. In the **Stripe deposit** section, click **Collect deposit**.
-3. Enter amount (e.g. deposit in cents or use the default from the UI).
-4. You should be redirected to **Stripe Checkout** (or a new tab with the checkout URL).
+**Option A — Admin:** Open the **lead detail** (click the lead). In the **Stripe deposit** section, click **Collect deposit**. You are redirected to Stripe Checkout. Deposit amount is taken from the lead’s **recommended package** (or package from form); admins can override the recommended package in the lead detail.
+
+**Option B — Patient:** If the lead’s email has a patient account, log in and go to **/patient**. In “Your assessments”, click **Pay deposit** for that lead. Checkout uses the same API; patient can only pay for leads matching their email.
 
 ### 4. Pay with Stripe test card
 

@@ -55,7 +55,7 @@ export async function getPatientDashboardData(email: string) {
   if (!email?.trim()) return { leads: [], bookings: [], consultations: [], payments: [] };
   const supabase = getServerSupabase();
   const [leadsRes, paymentsRes] = await Promise.all([
-    supabase.from("leads").select("id, first_name, last_name, email, status, package_slug, created_at").ilike("email", email.trim()).order("created_at", { ascending: false }).limit(10),
+    supabase.from("leads").select("id, first_name, last_name, email, status, package_slug, recommended_package_slug, created_at").ilike("email", email.trim()).order("created_at", { ascending: false }).limit(10),
     supabase.from("payments").select("id, lead_id, status, amount_cents, created_at").order("created_at", { ascending: false }),
   ]);
   const leads = leadsRes.data ?? [];
@@ -64,7 +64,7 @@ export async function getPatientDashboardData(email: string) {
   let consultations: unknown[] = [];
   if (leadIds.length > 0) {
     const [bRes, cRes] = await Promise.all([
-      supabase.from("bookings").select("id, lead_id, package_id, status, total_price_usd, deposit_paid, start_date, end_date").in("lead_id", leadIds).order("created_at", { ascending: false }),
+      supabase.from("bookings").select("id, lead_id, package_id, status, total_price_usd, deposit_paid, deposit_cents, start_date, end_date").in("lead_id", leadIds).order("created_at", { ascending: false }),
       supabase.from("consultations").select("id, lead_id, specialist_id, status, requested_at, scheduled_at").in("lead_id", leadIds).order("requested_at", { ascending: false }),
     ]);
     bookings = bRes.data ?? [];

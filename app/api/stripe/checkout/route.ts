@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getServerConfig } from "@/lib/config/server";
 import { getServerSupabase } from "@/lib/supabase/server";
-import { requireAdmin } from "@/lib/auth";
+import { getCurrentProfile } from "@/lib/auth";
 import { createLogger } from "@/lib/logger";
 import { z } from "zod";
 import { UuidSchema } from "@/lib/validation/common";
@@ -38,9 +38,13 @@ function resolveInternalReturnUrl(
 export async function POST(request: Request) {
   const requestId = crypto.randomUUID();
   const log = createLogger(requestId);
-  try {
-    await requireAdmin();
-  } catch {
+  const ctx = await getCurrentProfile();
+  if (!ctx) {
+    return NextResponse.json({ error: "Unauthorized", request_id: requestId }, { status: 401 });
+  }
+  const isAdmin = ctx.profile.role === "admin";
+  const isPatient = ctx.profile.role === "patient" || ctx.profile.role === "user";
+  if (!isAdmin && !isPatient) {
     return NextResponse.json({ error: "Forbidden", request_id: requestId }, { status: 403 });
   }
   try {
@@ -58,16 +62,10 @@ export async function POST(request: Request) {
     }
     const { lead_id, amount_cents, success_url, cancel_url } = parsed.data;
     const origin = new URL(request.url).origin;
-    const successUrl = resolveInternalReturnUrl(
-      success_url,
-      origin,
-      `/admin/leads/${lead_id}?paid=1`,
-    );
-    const cancelUrl = resolveInternalReturnUrl(
-      cancel_url,
-      origin,
-      `/admin/leads/${lead_id}`,
-    );
+    const defaultSuccess = isAdmin ? `/admin/leads/${lead_id}?paid=1` : `/patient?paid=1`;
+    const defaultCancel = isAdmin ? `/admin/leads/${lead_id}` : `/patient`;
+    const successUrl = resolveInternalReturnUrl(success_url, origin, defaultSuccess);
+    const cancelUrl = resolveInternalReturnUrl(cancel_url, origin, defaultCancel);
     if (!successUrl || !cancelUrl) {
       return NextResponse.json({ error: "Invalid return URLs" }, { status: 400 });
     }
@@ -75,7 +73,7 @@ export async function POST(request: Request) {
     const supabase = getServerSupabase();
     const { data: leadRow, error: leadError } = await supabase
       .from("leads")
-      .select("id, package_slug")
+      .select("id, package_slug, recommended_package_slug, email")
       .eq("id", lead_id)
       .maybeSingle();
     if (leadError) {
@@ -85,10 +83,16 @@ export async function POST(request: Request) {
     if (!leadRow) {
       return NextResponse.json({ error: "Lead not found" }, { status: 404 });
     }
+    if (isPatient && (leadRow.email as string | null)?.trim()?.toLowerCase() !== (ctx.profile.email ?? "").trim().toLowerCase()) {
+      return NextResponse.json({ error: "You can only pay deposit for your own lead", request_id: requestId }, { status: 403 });
+    }
 
     let packageName: string | null = null;
     let resolvedAmountCents = FALLBACK_DEPOSIT_CENTS;
-    const packageSlug = (leadRow.package_slug as string | null | undefined) ?? null;
+    const packageSlug =
+      (leadRow.recommended_package_slug as string | null | undefined)
+      ?? (leadRow.package_slug as string | null | undefined)
+      ?? null;
     if (packageSlug) {
       const { data: packageRow, error: packageError } = await supabase
         .from("packages")

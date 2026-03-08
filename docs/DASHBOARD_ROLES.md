@@ -78,14 +78,14 @@ Data is not scoped to a single provider; coordinators see operational breadth.
 **Guard:** `requirePatient()`
 
 **Shows (matched by profile email):**
-
+- Profile summary (name, email)
 - Submitted assessments (leads with same email)
-- Selected package per lead
-- Consultations linked to those leads
+- Recommended package per lead (orientation only; admin can override)
 - Booking status (deposit, dates)
 - Payment status
+- **Next actions:** “Pay deposit” for leads that have not yet paid (Stripe checkout; patient can only pay for their own lead)
 
-Patient data is matched by `lead.email = profile.email`; no public signup for providers/specialists.
+Patient data is matched by `lead.email = profile.email`. Patients can sign up at `/signup`; other roles are admin-created.
 
 ---
 

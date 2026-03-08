@@ -89,6 +89,12 @@ Equivale a `lint` → `test` → `build`. Si todo pasa, el código está listo p
 - **Público:** `/` (landing), `/assessment`, `/packages`, `/health-packages`, `/tour-experiences`, `/packages/[slug]`, `/thank-you`, `/legal`, `/signin`.
 - **Admin:** `/admin` (redirige a overview), `/admin/overview` (KPIs), `/admin/leads`, `/admin/leads/[id]`, `/admin/assets`, `/admin/login`, `/admin/status`. Ver [STATUS](STATUS.md) y [DASHBOARDS_POR_ROL](docs/DASHBOARDS_POR_ROL.md).
 
+## Contribuir y GitHub
+
+- **[Configuración GitHub (enterprise / SaaS)](docs/GITHUB_ENTERPRISE_SETUP.md)** — Protección de ramas, CI, plantillas, Dependabot.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — Cómo contribuir (ramas, verify, PR).
+- **[SECURITY.md](SECURITY.md)** — Cómo reportar vulnerabilidades.
+
 ## Documentación
 
 - **[Conectar Supabase y Vercel](docs/CONECTAR_SUPABASE_VERCEL.md)** — Guía rápida para enlazar la app con Supabase y Vercel.

@@ -66,7 +66,7 @@ function LoginForm() {
             Sign in
           </h1>
           <p className="mt-2 text-sm text-zinc-400">
-            Use your account to access your dashboard. No public signup for providers or specialists.
+            Use your account to access your dashboard. Admin, coordinator, provider and specialist accounts are created by the team.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -117,6 +117,10 @@ function LoginForm() {
           <p className="mt-8 text-center text-sm text-zinc-500">
             <Link href="/" className="text-zinc-400 hover:text-white">
               ← Back to home
+            </Link>
+            {" · "}
+            <Link href="/signup" className="text-zinc-400 hover:text-white">
+              Create patient account
             </Link>
             {" · "}
             <Link href="/assessment" className="text-zinc-400 hover:text-white">

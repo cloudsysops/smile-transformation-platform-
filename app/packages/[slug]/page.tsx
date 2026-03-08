@@ -105,6 +105,31 @@ export default async function PackagePage({ params, searchParams }: Props) {
           </section>
         )}
 
+        {(pkg.recovery_city ?? pkg.origin_city ?? pkg.destination_city ?? pkg.badge) && (
+          <section className="mb-6 flex flex-wrap gap-4 text-sm">
+            {pkg.badge && (
+              <span className="rounded-full bg-zinc-200 px-3 py-1 font-medium text-zinc-700">{pkg.badge}</span>
+            )}
+            {pkg.origin_city && (
+              <div>
+                <span className="font-medium text-zinc-500">From</span>
+                <p className="mt-0.5">{pkg.origin_city}</p>
+              </div>
+            )}
+            {pkg.destination_city && (
+              <div>
+                <span className="font-medium text-zinc-500">To</span>
+                <p className="mt-0.5">{pkg.destination_city}</p>
+              </div>
+            )}
+            {pkg.recovery_city && (
+              <div>
+                <span className="font-medium text-zinc-500">Recovery</span>
+                <p className="mt-0.5">{pkg.recovery_city}</p>
+              </div>
+            )}
+          </section>
+        )}
         <section className="mb-8 flex flex-wrap gap-6 text-sm">
           {pkg.duration_days != null && (
             <div>

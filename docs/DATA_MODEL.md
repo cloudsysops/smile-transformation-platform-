@@ -17,7 +17,7 @@
 ## Key fields
 
 - **packages**: `slug`, `name`, `location`, `duration_days`, `deposit_cents`, `included` (array), `itinerary_outline`, `published`.
-- **leads**: `first_name`, `last_name`, `email`, `phone`, `country`, `package_slug`, `message`, `status` (new → deposit_paid → …), attribution fields `utm_source`, `utm_medium`, `utm_campaign`, `utm_term`, `utm_content`, `landing_path`, `referrer_url`, and sales-ops follow-up fields `last_contacted_at`, `next_follow_up_at`, `follow_up_notes`.
+- **leads**: `first_name`, `last_name`, `email`, `phone`, `country`, `package_slug`, `package_id`, `message`, `status` (new → deposit_paid → …), attribution fields, follow-up fields, and **`recommended_package_slug`** / **`recommended_package_id`** (orientation only; set from assessment or admin override).
 - **payments**: `lead_id`, `stripe_checkout_session_id`, `stripe_payment_intent_id`, `amount_cents`, `status`.
 - **assets**: `storage_path`, `title`, `category` (clinic\|finca\|lodging\|tour\|team\|other), `location` (Medellín\|Manizales\|Other), `tags` (text[]), `alt_text`, `approved`, `published`, `deleted_at`.
 - **lead_ai**: `lead_id`, `triage_json` (jsonb), `messages_json` (jsonb), `ops_json` (jsonb), `followup_24h_json` (jsonb), `followup_48h_json` (jsonb), `triage_completed`, `response_generated`, `itinerary_generated`, `ops_generated`, `notes`.
