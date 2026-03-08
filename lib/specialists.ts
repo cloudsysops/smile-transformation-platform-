@@ -111,6 +111,42 @@ export async function getSpecialistBySlug(slug: string): Promise<SpecialistRow |
   }
 }
 
+export type RecommendedSpecialistParams = {
+  /** Preferred city (e.g. from package location: Medellín, Manizales). */
+  cityPreference: string;
+  /** Optional treatment types from lead (e.g. selected_specialties). Used to prefer matching specialty. */
+  treatmentTypes?: string[];
+};
+
+/**
+ * Match a specialist for post-assessment recommendation.
+ * Logic: city match + optional specialty/treatment type match. Later replaceable by AI matching.
+ */
+export async function getRecommendedSpecialist(
+  params: RecommendedSpecialistParams,
+): Promise<SpecialistRow | null> {
+  const { cityPreference, treatmentTypes } = params;
+  const candidates = await getPublishedSpecialists();
+  if (candidates.length === 0) return null;
+
+  const cityNorm = cityPreference.trim().toLowerCase();
+  const byCity = candidates.filter(
+    (s) => (s.city ?? "").trim().toLowerCase() === cityNorm,
+  );
+  const pool = byCity.length > 0 ? byCity : candidates;
+
+  if (!treatmentTypes || treatmentTypes.length === 0) {
+    return pool[0] ?? null;
+  }
+
+  const typesNorm = treatmentTypes.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  const withSpecialtyMatch = pool.find((s) => {
+    const spec = (s.specialty ?? "").toLowerCase();
+    return typesNorm.some((t) => spec.includes(t) || t.includes(spec));
+  });
+  return withSpecialtyMatch ?? pool[0] ?? null;
+}
+
 export type SpecialistInsert = Omit<SpecialistRow, "id" | "created_at" | "updated_at"> & {
   id?: string;
   created_at?: string;
