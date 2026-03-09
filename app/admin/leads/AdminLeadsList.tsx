@@ -12,6 +12,7 @@ type Lead = {
   created_at: string;
   last_contacted_at?: string | null;
   next_follow_up_at?: string | null;
+  recommended_package_slug?: string | null;
 };
 
 type Props = Readonly<{
@@ -84,6 +85,14 @@ function badgeLabel(priority: LeadWithPriority["priority"]): string {
   }
 }
 
+/** Operator-friendly next action: recommend package vs collect deposit */
+function nextActionLabel(lead: Lead): string {
+  if (lead.status === "deposit_paid") return "—";
+  const hasRecommendation = (lead.recommended_package_slug ?? "").trim() !== "";
+  if (hasRecommendation) return "Ready to collect deposit";
+  return "Ready to recommend package";
+}
+
 export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
   const [showActionQueueOnly, setShowActionQueueOnly] = useState(false);
   const now = Number.isNaN(Date.parse(nowIso)) ? 0 : Date.parse(nowIso);
@@ -139,6 +148,7 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Email</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Priority</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Status</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Next action</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Next follow-up</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Created</th>
               <th className="px-4 py-3.5" />
@@ -164,6 +174,9 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
                   </span>
                 </td>
                 <td className="px-4 py-3">{lead.status}</td>
+                <td className="px-4 py-3">
+                  <span className="text-xs font-medium text-zinc-700">{nextActionLabel(lead)}</span>
+                </td>
                 <td className="px-4 py-3">
                   {lead.next_follow_up_at
                     ? new Date(lead.next_follow_up_at).toLocaleString()

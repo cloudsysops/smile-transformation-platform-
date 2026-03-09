@@ -58,7 +58,7 @@ export default function DentalImplantsColombiaPage() {
                 href="/packages"
                 className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-zinc-600 px-8 py-3 text-sm font-semibold text-zinc-100 hover:border-zinc-500 hover:bg-zinc-900/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
               >
-                View Treatment Packages
+                View Packages
               </Link>
             </div>
             <p className="mt-3 text-xs text-zinc-500">

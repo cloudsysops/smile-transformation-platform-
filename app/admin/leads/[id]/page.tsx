@@ -121,6 +121,13 @@ export default async function AdminLeadDetailPage({ params }: Props) {
       <div className="space-y-6">
         {/* Primary overview: status, recommendation, deposit */}
         <section className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-6 sm:grid-cols-3">
+          {lead.status !== "deposit_paid" && (
+            <p className="sm:col-span-3 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm font-medium text-amber-800">
+              {!(lead.recommended_package_slug as string)?.trim()
+                ? "Ready to recommend package — set a recommendation below, then collect deposit when the lead is ready."
+                : "Ready to collect deposit — use the Collect deposit button when the lead is ready to pay."}
+            </p>
+          )}
           <div className="sm:col-span-1 border-b border-zinc-100 pb-4 sm:border-b-0 sm:border-r sm:pr-4">
             <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Lead status</h2>
             <p className="mt-2 text-sm font-semibold text-zinc-900">{lead.status}</p>
@@ -139,7 +146,7 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             )}
           </div>
           <div className="sm:col-span-1 border-b border-zinc-100 pb-4 sm:border-b-0 sm:border-r sm:px-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Package</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Package (recommend if not set)</h2>
             <p className="mt-2 text-sm text-zinc-900">
               {lead.recommended_package_slug && lead.recommended_package_slug !== ""
                 ? lead.recommended_package_slug
@@ -152,10 +159,12 @@ export default async function AdminLeadDetailPage({ params }: Props) {
             </p>
           </div>
           <div className="sm:col-span-1 pt-4 sm:pt-0 sm:pl-4">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Deposit</h2>
-            <p className="mt-2 text-sm text-zinc-900">Primary next action</p>
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Deposit (collect when ready)</h2>
+            <p className="mt-2 text-sm text-zinc-900">
+              {lead.status === "deposit_paid" ? "Paid" : "Collect via Stripe Checkout when lead is ready."}
+            </p>
             <p className="mt-1 text-xs text-zinc-500">
-              When you&apos;re ready to secure the booking, collect the deposit via Stripe Checkout.
+              When you&apos;re ready to secure the booking, click Collect deposit below.
             </p>
             <div className="mt-3">
               <DepositButton leadId={lead.id} amountCents={depositAmountCents} />

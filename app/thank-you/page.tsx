@@ -62,6 +62,11 @@ export default async function ThankYouPage({ searchParams }: Props) {
             Thank you for your interest in {branding.productName}. Our coordinator and specialist team will review your
             details and prepare a personalized recommendation.
           </p>
+          {(recommendedPackage?.name || cityPreference) && (
+            <p className="mt-2 text-sm font-medium text-emerald-200/90">
+              We&apos;ll review your case for {[recommendedPackage?.name, cityPreference].filter(Boolean).join(" · ")}.
+            </p>
+          )}
           <p className="mt-2 text-sm text-zinc-500">
             We usually respond within <span className="font-medium text-zinc-300">24 hours</span> on business days. No
             commitment — this is a free evaluation to help you plan your smile journey.
