@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 type PackageOption = { id: string; slug: string; name: string };
 
-type Props = {
+type Props = Readonly<{
   leadId: string;
   currentRecommendedSlug: string | null;
   packages: PackageOption[];
-};
+}>;
 
 export default function LeadRecommendationForm({
   leadId,
@@ -20,7 +20,7 @@ export default function LeadRecommendationForm({
   const [slug, setSlug] = useState(currentRecommendedSlug ?? "");
   const [saving, setSaving] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
     const res = await fetch(`/api/admin/leads/${leadId}`, {
@@ -36,17 +36,19 @@ export default function LeadRecommendationForm({
 
   return (
     <form onSubmit={handleSubmit} className="rounded-lg border border-zinc-200 bg-white p-6">
-      <h2 className="font-semibold">Recommended package (override)</h2>
+      <h2 className="text-sm font-semibold text-zinc-900">Recommend package</h2>
       <p className="mt-1 text-sm text-zinc-600">
-        Orientation only. Final treatment planning belongs to the specialist.
+        Choose the journey you want to recommend for this lead. This is for orientation; final treatment planning
+        belongs to the specialist.
       </p>
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
         <select
           value={slug}
           onChange={(e) => setSlug(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 text-sm min-w-[200px]"
+          className="min-w-[220px] rounded border border-zinc-300 px-3 py-2 text-sm"
+          aria-label="Recommended package"
         >
-          <option value="">— None —</option>
+          <option value="">— No recommended package —</option>
           {packages.map((p) => (
             <option key={p.id} value={p.slug}>
               {p.name}
@@ -56,9 +58,9 @@ export default function LeadRecommendationForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded bg-zinc-800 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50"
+          className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
         >
-          {saving ? "Saving…" : "Update"}
+          {saving ? "Saving…" : "Save recommendation"}
         </button>
       </div>
     </form>

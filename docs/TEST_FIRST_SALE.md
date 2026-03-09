@@ -28,10 +28,17 @@ Use this to verify the full flow from lead creation to deposit payment and statu
 1. Go to **/signin** (or **/admin/login**, which redirects to /signin).
 2. Log in with the admin user (email + password created in Supabase Auth).
 3. Go to **Leads** and find the lead you just created (same name/email and recent time).
+4. Click the lead to open the **lead detail** page. At the top you should see:
+   - **Lead status** (e.g. `new`, `qualified`, `deposit_paid`).
+   - **Package** (from the form or recommendation).
+   - **Deposit** section with the **Collect deposit** button.
 
-### 3. Collect deposit
+### 3. Recommend package (if needed) and collect deposit
 
-**Option A — Admin:** Open the **lead detail** (click the lead). In the **Stripe deposit** section, click **Collect deposit**. You are redirected to Stripe Checkout. Deposit amount is taken from the lead’s **recommended package** (or package from form); admins can override the recommended package in the lead detail.
+**Option A — Admin:**
+
+1. In the **Recommend package** section on the lead detail, choose the package you want to suggest for this lead (for example, Essential Care Journey) and click **Save recommendation**.
+2. In the **Deposit** section at the top, click **Collect deposit**. You are redirected to Stripe Checkout. The deposit amount is taken from the lead’s **recommended package** (or the package from the form if no recommendation is set).
 
 **Option B — Patient:** If the lead’s email has a patient account, log in and go to **/patient**. In “Your assessments”, click **Pay deposit** for that lead. Checkout uses the same API; patient can only pay for leads matching their email.
 
