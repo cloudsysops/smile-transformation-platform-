@@ -25,7 +25,10 @@ export default async function AssessmentPage({ searchParams }: Props) {
             Share your details and goals. We&apos;ll review your case and get in touch within 24 hours—no commitment.
           </p>
           <p className="mt-2 text-xs text-zinc-500">
-            Coordination only. We don&apos;t collect sensitive medical data here.
+            We only use this for coordination. We don&apos;t collect sensitive medical or health data here.
+          </p>
+          <p className="mt-1 text-xs text-zinc-500">
+            We respond in ~24 hours on business days.
           </p>
         </div>
       </header>

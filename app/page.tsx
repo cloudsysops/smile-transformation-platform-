@@ -136,13 +136,13 @@ export default async function Home() {
               href="/assessment"
               className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 sm:px-5 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
-              Start Free Assessment
+              Start Free Smile Evaluation
             </Link>
             <Link
               href="/packages"
               className="hidden rounded-full border border-zinc-600 px-4 py-2 text-sm font-medium text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800/80 sm:inline-block focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
-              View Treatment Packages
+              View Packages
             </Link>
             <Link href="/#how-it-works" className="hidden text-sm font-medium text-zinc-400 hover:text-white sm:inline-block">
               How it works
@@ -166,24 +166,23 @@ export default async function Home() {
           <div className="grid gap-10 md:grid-cols-2 md:items-center md:gap-12">
             <div>
               <h1 className="mb-4 text-3xl font-bold tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
-                Transform Your Smile in Colombia<br />
-                <span className="text-emerald-400">Save up to 70%</span> on world-class dental treatments.
+                World-class dental care in Colombia — without the fear or the cost.
               </h1>
               <p className="mb-8 max-w-lg text-lg text-zinc-400">
-                {branding.productName} connects international patients with verified clinics in Medellín and Manizales.
+                Save up to 70% vs US and Europe. Verified clinics in Medellín and Manizales, secure payments, and a coordinator so you’re never alone.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
                 <Link
                   href="/assessment"
                   className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-zinc-900 hover:bg-zinc-100 sm:w-auto focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
                 >
-                  Start My Free Smile Assessment
+                  Start Free Smile Evaluation
                 </Link>
                 <Link
                   href="/packages"
                   className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full border-2 border-zinc-600 px-8 py-4 text-base font-semibold text-zinc-200 hover:border-zinc-500 hover:bg-zinc-800/80 sm:w-auto focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950"
                 >
-                  View Treatment Packages
+                  View Packages
                 </Link>
               </div>
               <p className="mt-3 text-sm text-zinc-500" aria-hidden="true">
@@ -416,7 +415,7 @@ export default async function Home() {
             href="/assessment"
             className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-zinc-900 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
           >
-            Start Free Assessment
+            Start Free Smile Evaluation
           </Link>
         </section>
 
@@ -450,7 +449,7 @@ export default async function Home() {
               href="/assessment"
               className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-zinc-900 hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
             >
-              Start My Free Smile Assessment
+              Start Free Smile Evaluation
             </Link>
           </div>
         </section>
@@ -794,7 +793,7 @@ export default async function Home() {
                 href="/assessment"
                 className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-white px-10 py-4 text-lg font-semibold text-zinc-900 hover:bg-zinc-100 sm:w-auto focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
               >
-                Start My Free Assessment
+                Start Free Smile Evaluation
               </Link>
               <WhatsAppButton
                 label="Chat on WhatsApp"
@@ -849,7 +848,7 @@ export default async function Home() {
                 href="/assessment"
                 className="min-h-[44px] inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-zinc-900 hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
               >
-                Start Free Smile Assessment
+                Start Free Smile Evaluation
               </Link>
               <WhatsAppButton label="Chat" variant="inline" className="min-h-[44px] inline-flex items-center justify-center rounded-full border border-zinc-600 bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-zinc-950" />
             </div>

@@ -111,6 +111,7 @@ export default async function PatientDashboardPage() {
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <div className="mb-8 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Profile</p>
+          <p className="mt-1 text-xs text-zinc-600">Your account and contact details.</p>
           <p className="mt-2 font-semibold text-zinc-900">{profile.full_name || profile.email || "—"}</p>
           <p className="mt-0.5 text-sm text-zinc-600">{profile.email}</p>
         </div>
@@ -118,6 +119,7 @@ export default async function PatientDashboardPage() {
         {showJourneyPortal && pkgForJourney && (
           <>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">Your journey</h2>
+            <p className="mb-1 text-sm text-zinc-600">Your treatment plan, travel details, and timeline in one place.</p>
             <p className="mb-6 text-lg font-semibold text-zinc-900">Treatment plan, travel, and timeline</p>
             <div className="mb-8 grid gap-6 lg:grid-cols-2">
               <TreatmentPlanSection
@@ -146,25 +148,35 @@ export default async function PatientDashboardPage() {
         {travelPackage && (
           <div className="mb-8 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 shadow-sm">
             <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">Your recommended journey</p>
+            <p className="mt-1 text-xs text-zinc-600">The package we suggested for you; pay the deposit when you&apos;re ready to secure your booking.</p>
             <p className="mt-2 text-lg font-semibold text-zinc-900">{travelPackage.name}</p>
-            {travelPackage.deposit_cents != null && travelPackage.deposit_cents > 0 && (
-              <p className="mt-1 text-sm font-medium text-emerald-800">
-                Deposit: ${(travelPackage.deposit_cents / 100).toFixed(2)} USD
+            {hasDepositPaid ? (
+              <p className="mt-2 rounded-lg bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-800">
+                Deposit received — your coordinator will contact you to confirm next steps.
               </p>
+            ) : (
+              <>
+                {travelPackage.deposit_cents != null && travelPackage.deposit_cents > 0 && (
+                  <p className="mt-1 text-sm font-medium text-emerald-800">
+                    Deposit: ${(travelPackage.deposit_cents / 100).toFixed(2)} USD
+                  </p>
+                )}
+                <p className="mt-2 text-sm text-zinc-600">
+                  Includes partner dental clinic, accommodation, airport transfer, and curated experiences in Colombia. Your care coordinator will confirm details after your deposit.
+                </p>
+                <Link
+                  href={`/packages/${travelPackage.slug}`}
+                  className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  View full package details
+                </Link>
+              </>
             )}
-            <p className="mt-2 text-sm text-zinc-600">
-              Includes partner dental clinic, accommodation, airport transfer, and curated experiences in Colombia. Your care coordinator will confirm details after your deposit.
-            </p>
-            <Link
-              href={`/packages/${travelPackage.slug}`}
-              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white hover:bg-emerald-700"
-            >
-              View full package details
-            </Link>
           </div>
         )}
 
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">Overview</h2>
+        <p className="mb-1 text-sm text-zinc-600">Counts of your assessments, bookings, consultations, and payments.</p>
         <p className="mb-6 text-lg font-semibold text-zinc-900">Your submissions and status</p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
@@ -230,7 +242,7 @@ export default async function PatientDashboardPage() {
                           {canPayDeposit ? (
                             <PatientDepositButton leadId={l.id} amountCents={depositCents} />
                           ) : (
-                            "Deposit paid"
+                            <span className="font-medium text-emerald-700">Deposit received — your coordinator will contact you.</span>
                           )}
                         </td>
                       </tr>
