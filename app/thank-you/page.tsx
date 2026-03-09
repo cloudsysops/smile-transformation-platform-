@@ -56,13 +56,15 @@ export default async function ThankYouPage({ searchParams }: Props) {
             </svg>
           </div>
           <h1 className="mt-4 text-2xl font-bold tracking-tight text-white md:text-3xl">
-            Request received
+            Request received — your free evaluation is in progress
           </h1>
           <p className="mt-3 text-zinc-300">
-            Thank you for your interest in {branding.productName}. A coordinator or specialist team will review your details and get in touch within 24 hours.
+            Thank you for your interest in {branding.productName}. Our coordinator and specialist team will review your
+            details and prepare a personalized recommendation.
           </p>
           <p className="mt-2 text-sm text-zinc-500">
-            No commitment. We&apos;re here to help you plan your smile journey.
+            We usually respond within <span className="font-medium text-zinc-300">24 hours</span> on business days. No
+            commitment — this is a free evaluation to help you plan your smile journey.
           </p>
         </div>
 
@@ -107,16 +109,22 @@ export default async function ThankYouPage({ searchParams }: Props) {
           <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-500">What happens next</h2>
           <ul className="mt-4 space-y-3 text-sm text-zinc-300">
             <li className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">1</span>
-              Our team reviews your submission and matches you with the best option.
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">
+                1
+              </span>
+              <span>Our team reviews your submission and matches you with the best option.</span>
             </li>
             <li className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">2</span>
-              We&apos;ll contact you within 24 hours by email (or phone if you shared it).
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">
+                2
+              </span>
+              <span>We&apos;ll contact you within 24 hours by email (or phone if you shared it).</span>
             </li>
             <li className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">3</span>
-              You can message us on WhatsApp anytime with questions.
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-400">
+                3
+              </span>
+              <span>You can message us on WhatsApp anytime with questions.</span>
             </li>
           </ul>
         </div>

@@ -14,10 +14,10 @@ type Lead = {
   next_follow_up_at?: string | null;
 };
 
-type Props = {
+type Props = Readonly<{
   initialLeads: Lead[];
   nowIso: string;
-};
+}>;
 
 type LeadWithPriority = Lead & {
   priority: "overdue" | "due_soon" | "unplanned" | "normal";
@@ -131,49 +131,65 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
         </button>
       </div>
 
-      <div className="rounded-lg border border-zinc-200 bg-white overflow-hidden">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-zinc-200 bg-zinc-50">
-          <tr>
-            <th className="px-4 py-3 font-medium">Name</th>
-            <th className="px-4 py-3 font-medium">Email</th>
-            <th className="px-4 py-3 font-medium">Priority</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Next follow-up</th>
-            <th className="px-4 py-3 font-medium">Created</th>
-            <th className="px-4 py-3 font-medium"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {visibleLeads.map((lead) => (
-            <tr key={lead.id} className="border-b border-zinc-100">
-              <td className="px-4 py-3">{lead.first_name} {lead.last_name}</td>
-              <td className="px-4 py-3">{lead.email}</td>
-              <td className="px-4 py-3">
-                <span className={`rounded px-2 py-1 text-xs font-medium ${badgeClass(lead.priority)}`}>
-                  {badgeLabel(lead.priority)}
-                </span>
-              </td>
-              <td className="px-4 py-3">{lead.status}</td>
-              <td className="px-4 py-3">
-                {lead.next_follow_up_at
-                  ? new Date(lead.next_follow_up_at).toLocaleString()
-                  : "—"}
-              </td>
-              <td className="px-4 py-3">{new Date(lead.created_at).toLocaleDateString()}</td>
-              <td className="px-4 py-3">
-                <Link href={`/admin/leads/${lead.id}`} className="text-emerald-600 hover:underline">
-                  View
-                </Link>
-              </td>
+      <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-zinc-200 bg-zinc-50">
+            <tr>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Name</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Email</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Priority</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Status</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Next follow-up</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Created</th>
+              <th className="px-4 py-3.5" />
             </tr>
-          ))}
-        </tbody>
-      </table>
-      {visibleLeads.length === 0 && (
-        <p className="p-8 text-center text-zinc-500">No leads yet.</p>
-      )}
-    </div>
+          </thead>
+          <tbody>
+            {visibleLeads.map((lead) => (
+              <tr key={lead.id} className="border-b border-zinc-100">
+                <td className="px-4 py-3">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-zinc-900">
+                      {lead.first_name} {lead.last_name}
+                    </span>
+                    <span className="text-xs text-zinc-500">
+                      {new Date(lead.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3">{lead.email}</td>
+                <td className="px-4 py-3">
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(lead.priority)}`}>
+                    {badgeLabel(lead.priority)}
+                  </span>
+                </td>
+                <td className="px-4 py-3">{lead.status}</td>
+                <td className="px-4 py-3">
+                  {lead.next_follow_up_at
+                    ? new Date(lead.next_follow_up_at).toLocaleString()
+                    : "—"}
+                </td>
+                <td className="px-4 py-3">
+                  {lead.last_contacted_at
+                    ? new Date(lead.last_contacted_at).toLocaleString()
+                    : "—"}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <Link
+                    href={`/admin/leads/${lead.id}`}
+                    className="rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                  >
+                    Open
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {visibleLeads.length === 0 && (
+          <p className="p-8 text-center text-zinc-500">No leads yet. New assessments will appear here.</p>
+        )}
+      </div>
     </div>
   );
 }

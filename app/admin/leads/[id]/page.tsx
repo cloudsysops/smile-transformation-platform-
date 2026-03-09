@@ -13,7 +13,7 @@ import OutboundQueuePanel from "../OutboundQueuePanel";
 import { ItineraryOutputSchema, LeadTriageOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
 import AdminShell from "../../_components/AdminShell";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = Readonly<{ params: Promise<{ id: string }> }>;
 const StoredMessageSchema = SalesResponderOutputSchema.extend({
   cta_url: z.string().url().optional(),
   generated_at: z.string().optional(),
@@ -112,40 +112,89 @@ export default async function AdminLeadDetailPage({ params }: Props) {
       currentSection="leads"
       headerLeading={
         <Link href="/admin/leads" className="text-sm text-zinc-600 hover:underline">
-          ← Leads
+          ← Back to leads
         </Link>
       }
       headerContainerClassName="max-w-4xl"
-      mainContainerClassName="max-w-2xl"
+      mainContainerClassName="max-w-3xl"
     >
       <div className="space-y-6">
-        <div className="rounded-lg border border-zinc-200 bg-white p-6">
-          <dl className="grid gap-3 text-sm">
-            <div><dt className="font-medium text-zinc-500">Email</dt><dd>{lead.email}</dd></div>
-            {lead.phone && <div><dt className="font-medium text-zinc-500">Phone</dt><dd>{lead.phone}</dd></div>}
-            {lead.country && <div><dt className="font-medium text-zinc-500">Country</dt><dd>{lead.country}</dd></div>}
-            {lead.package_slug && <div><dt className="font-medium text-zinc-500">Package (form)</dt><dd>{lead.package_slug}</dd></div>}
-            {(lead.recommended_package_slug != null && lead.recommended_package_slug !== "") && (
-              <div>
-                <dt className="font-medium text-zinc-500">Recommended package</dt>
-                <dd>{lead.recommended_package_slug}</dd>
-              </div>
-            )}
-            <div><dt className="font-medium text-zinc-500">Status</dt><dd>{lead.status}</dd></div>
+        {/* Primary overview: status, recommendation, deposit */}
+        <section className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-6 sm:grid-cols-3">
+          <div className="sm:col-span-1 border-b border-zinc-100 pb-4 sm:border-b-0 sm:border-r sm:pr-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Lead status</h2>
+            <p className="mt-2 text-sm font-semibold text-zinc-900">{lead.status}</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Created {new Date(lead.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })}
+            </p>
             {lead.last_contacted_at && (
-              <div>
-                <dt className="font-medium text-zinc-500">Last contacted</dt>
-                <dd>{new Date(lead.last_contacted_at).toLocaleString()}</dd>
-              </div>
+              <p className="mt-1 text-xs text-zinc-500">
+                Last contacted {new Date(lead.last_contacted_at).toLocaleString()}
+              </p>
             )}
             {lead.next_follow_up_at && (
+              <p className="mt-1 text-xs text-zinc-500">
+                Next follow-up {new Date(lead.next_follow_up_at).toLocaleString()}
+              </p>
+            )}
+          </div>
+          <div className="sm:col-span-1 border-b border-zinc-100 pb-4 sm:border-b-0 sm:border-r sm:px-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Package</h2>
+            <p className="mt-2 text-sm text-zinc-900">
+              {lead.recommended_package_slug && lead.recommended_package_slug !== ""
+                ? lead.recommended_package_slug
+                : lead.package_slug
+                  ? `From form: ${lead.package_slug}`
+                  : "No package selected yet"}
+            </p>
+            <p className="mt-1 text-xs text-zinc-500">
+              Use <span className="font-semibold">Recommend package</span> below to choose the journey for this lead.
+            </p>
+          </div>
+          <div className="sm:col-span-1 pt-4 sm:pt-0 sm:pl-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Deposit</h2>
+            <p className="mt-2 text-sm text-zinc-900">Primary next action</p>
+            <p className="mt-1 text-xs text-zinc-500">
+              When you&apos;re ready to secure the booking, collect the deposit via Stripe Checkout.
+            </p>
+            <div className="mt-3">
+              <DepositButton leadId={lead.id} amountCents={depositAmountCents} />
+            </div>
+          </div>
+        </section>
+
+        {/* Lead details */}
+        <section className="rounded-lg border border-zinc-200 bg-white p-6">
+          <h2 className="text-sm font-semibold text-zinc-900">Lead details</h2>
+          <dl className="mt-3 grid gap-3 text-sm">
+            <div>
+              <dt className="font-medium text-zinc-500">Email</dt>
+              <dd>{lead.email}</dd>
+            </div>
+            {lead.phone && (
               <div>
-                <dt className="font-medium text-zinc-500">Next follow-up</dt>
-                <dd>{new Date(lead.next_follow_up_at).toLocaleString()}</dd>
+                <dt className="font-medium text-zinc-500">Phone</dt>
+                <dd>{lead.phone}</dd>
               </div>
             )}
-            <div><dt className="font-medium text-zinc-500">Created</dt><dd>{new Date(lead.created_at).toLocaleString()}</dd></div>
-            {lead.message && <div><dt className="font-medium text-zinc-500">Message</dt><dd className="whitespace-pre-wrap">{lead.message}</dd></div>}
+            {lead.country && (
+              <div>
+                <dt className="font-medium text-zinc-500">Country</dt>
+                <dd>{lead.country}</dd>
+              </div>
+            )}
+            {lead.package_slug && (
+              <div>
+                <dt className="font-medium text-zinc-500">Package from form</dt>
+                <dd>{lead.package_slug}</dd>
+              </div>
+            )}
+            {lead.message && (
+              <div>
+                <dt className="font-medium text-zinc-500">Message</dt>
+                <dd className="whitespace-pre-wrap">{lead.message}</dd>
+              </div>
+            )}
             {lead.follow_up_notes && (
               <div>
                 <dt className="font-medium text-zinc-500">Follow-up notes</dt>
@@ -170,7 +219,8 @@ export default async function AdminLeadDetailPage({ params }: Props) {
               </div>
             )}
           </dl>
-        </div>
+        </section>
+
         <LeadStatusForm leadId={lead.id} currentStatus={lead.status} />
         <LeadRecommendationForm
           leadId={lead.id}
@@ -184,11 +234,6 @@ export default async function AdminLeadDetailPage({ params }: Props) {
           currentNextFollowUpAt={(lead.next_follow_up_at as string | null | undefined) ?? null}
           currentFollowUpNotes={(lead.follow_up_notes as string | null | undefined) ?? null}
         />
-        <div className="rounded-lg border border-zinc-200 bg-white p-6">
-          <h2 className="font-semibold">Stripe deposit</h2>
-          <p className="mt-1 text-sm text-zinc-600">Create a checkout session for the deposit.</p>
-          <DepositButton leadId={lead.id} amountCents={depositAmountCents} />
-        </div>
         <AiActionsPanel
           leadId={lead.id}
           initialTriage={triageMaybe.success ? triageMaybe.data : null}
