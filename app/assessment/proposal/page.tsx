@@ -16,9 +16,25 @@ const SAVINGS_BY_TREATMENT: Record<string, string> = {
 };
 const DEFAULT_SAVINGS = "40–70%";
 
+/** Illustrative typical US cost ranges for comparison only. Not a quote. */
+const US_RANGE_BY_TREATMENT: Record<string, string> = {
+  "Dental Implants": "$8,000 – $15,000",
+  "Implants": "$8,000 – $15,000",
+  "Veneers": "$5,000 – $12,000",
+  "Hollywood Smile": "$6,000 – $14,000",
+  "Full Mouth": "$10,000 – $25,000",
+  "Aesthetic": "$4,000 – $10,000",
+  "General": "Varies by treatment",
+};
+
 function getSavingsRange(specialties: string[]): string {
   const key = specialties.find((s) => SAVINGS_BY_TREATMENT[s] != null);
   return key ? SAVINGS_BY_TREATMENT[key] : DEFAULT_SAVINGS;
+}
+
+function getUsRange(specialties: string[]): string {
+  const key = specialties.find((s) => US_RANGE_BY_TREATMENT[s] != null);
+  return key ? US_RANGE_BY_TREATMENT[key] : "Varies by treatment";
 }
 
 const JOURNEY_STEPS = [
@@ -58,6 +74,10 @@ export default async function ProposalPage({ searchParams }: Props) {
   }
 
   const savingsRange = getSavingsRange(treatmentTypes);
+  const usRange = getUsRange(treatmentTypes);
+  const treatmentLabel =
+    treatmentTypes[0] ?? recommendedPackage?.name ?? "my treatment";
+  const whatsAppMessage = `Hi! I completed my assessment for ${treatmentLabel} and saw the estimated savings. Can a coordinator help me review my treatment plan?`;
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -81,26 +101,64 @@ export default async function ProposalPage({ searchParams }: Props) {
             Your Personalized Smile Preview
           </h1>
           <p className="mt-2 text-zinc-300">
-            Based on your assessment, here’s what you can expect with {branding.productName}—and your next steps.
+            Based on your assessment, here&apos;s what you can expect with {branding.productName}—and your next steps.
           </p>
         </div>
 
-        {/* Estimated savings card */}
+        {/* Savings Widget: US vs MedVoyage comparison */}
         <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 shadow-xl shadow-black/20" aria-labelledby="savings-heading">
-          <h2 id="savings-heading" className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Estimated savings vs. U.S. prices
+          <h2 id="savings-heading" className="text-lg font-semibold text-white">
+            Your estimated savings
           </h2>
-          <p className="mt-2 text-3xl font-bold text-emerald-400 tabular-nums">{savingsRange}</p>
-          <p className="mt-1 text-xs text-zinc-500">
-            Savings are estimates and depend on your final treatment plan. We’ll give you a clear quote after specialist review.
+          <p className="mt-1 text-sm text-zinc-400">
+            Compare typical U.S. costs with {branding.productName}—your final quote comes after specialist review.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-xl border border-zinc-700 bg-zinc-800/60 p-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">Estimated US cost</p>
+              <p className="mt-1 text-lg font-semibold tabular-nums text-zinc-300">{usRange}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">Typical range for similar treatment</p>
+            </div>
+            <div className="rounded-xl border border-zinc-700 bg-zinc-800/60 p-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">{branding.productName}</p>
+              {recommendedPackage ? (
+                <>
+                  <p className="mt-1 text-lg font-semibold text-white">{recommendedPackage.name}</p>
+                  {(recommendedPackage.price_cents != null && recommendedPackage.price_cents > 0) ? (
+                    <p className="mt-0.5 text-sm tabular-nums text-emerald-400">
+                      From ${(recommendedPackage.price_cents / 100).toLocaleString()} USD
+                    </p>
+                  ) : recommendedPackage.deposit_cents != null && recommendedPackage.deposit_cents > 0 ? (
+                    <p className="mt-0.5 text-sm text-zinc-400">
+                      Deposit from ${(recommendedPackage.deposit_cents / 100).toFixed(2)} USD
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-sm text-zinc-400">Quote after specialist review</p>
+                  )}
+                </>
+              ) : (
+                <p className="mt-1 text-sm text-zinc-400">Quote after specialist review</p>
+              )}
+            </div>
+            <div className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 p-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-emerald-400/90">You save</p>
+              <p className="mt-1 text-2xl font-bold tabular-nums text-emerald-400">{savingsRange}</p>
+              <p className="mt-0.5 text-xs text-zinc-500">vs. typical U.S. prices</p>
+            </div>
+          </div>
+          <p className="mt-3 text-xs text-zinc-500">
+            Savings are estimates. Final pricing depends on your treatment plan. We&apos;ll give you a clear quote after specialist review.
           </p>
         </section>
 
-        {/* Journey stepper */}
+        {/* Journey timeline */}
         <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6" aria-labelledby="journey-heading">
-          <h2 id="journey-heading" className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Your likely journey
+          <h2 id="journey-heading" className="text-lg font-semibold text-white">
+            Your journey timeline
           </h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            From assessment to smile transformation—we coordinate every step.
+          </p>
           <ol className="mt-4 space-y-4">
             {JOURNEY_STEPS.map((step, i) => (
               <li key={step.label} className="flex gap-4">
@@ -148,27 +206,30 @@ export default async function ProposalPage({ searchParams }: Props) {
           </div>
         )}
 
-        {/* Trust */}
+        {/* Why MedVoyage trust block */}
         <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6" aria-labelledby="trust-heading">
-          <h2 id="trust-heading" className="text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            Why choose us
+          <h2 id="trust-heading" className="text-lg font-semibold text-white">
+            Why MedVoyage
           </h2>
+          <p className="mt-1 text-sm text-zinc-400">
+            International care, secure payments, and a dedicated team from first contact to follow-up.
+          </p>
           <ul className="mt-4 space-y-3 text-sm text-zinc-300">
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>Response within ~24 hours on business days</span>
+              <span>International patient coordination—flights, stay, and clinic visits</span>
             </li>
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>Secure deposit options (Stripe)</span>
+              <span>Secure deposit (Stripe)—pay when you&apos;re ready to book</span>
             </li>
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>International patient coordination</span>
+              <span>24h response on business days—we get back to you fast</span>
             </li>
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>WhatsApp support for questions</span>
+              <span>Guided care from assessment through treatment and follow-up</span>
             </li>
           </ul>
         </section>
@@ -183,7 +244,7 @@ export default async function ProposalPage({ searchParams }: Props) {
         {/* CTAs */}
         <div className="mt-8 flex flex-col gap-3 sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
           <WhatsAppButton
-            message="Hi! I just completed my Smile Assessment on MedVoyage Smile and I'd like to speak with a coordinator."
+            message={whatsAppMessage}
             label="Chat on WhatsApp"
             variant="inline"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full border-0 bg-emerald-600 px-6 font-semibold hover:bg-emerald-700 sm:w-auto"
@@ -224,11 +285,11 @@ export default async function ProposalPage({ searchParams }: Props) {
           <dl className="mt-4 space-y-3 text-sm text-zinc-400">
             <div>
               <dt className="font-medium text-zinc-300">When will I hear back?</dt>
-              <dd>Usually within 24 hours on business days. We’ll email you (or call if you shared your number).</dd>
+              <dd>Usually within 24 hours on business days. We&apos;ll email you (or call if you shared your number).</dd>
             </div>
             <div>
               <dt className="font-medium text-zinc-300">Is the assessment binding?</dt>
-              <dd>No. This is a free evaluation. You only pay a deposit when you’re ready to secure your booking.</dd>
+              <dd>No. This is a free evaluation. You only pay a deposit when you&apos;re ready to secure your booking.</dd>
             </div>
             <div>
               <dt className="font-medium text-zinc-300">Can I message you on WhatsApp?</dt>
