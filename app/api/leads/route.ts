@@ -83,12 +83,16 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      log.error("Lead insert failed", {
+      const errPayload = {
         request_id: requestId,
+        step: "leads.insert",
+        table: "leads",
         supabase_code: error.code ?? "unknown",
         supabase_message: error.message,
         supabase_details: typeof error.details === "string" ? error.details : undefined,
-      });
+        supabase_hint: typeof (error as { hint?: string }).hint === "string" ? (error as { hint: string }).hint : undefined,
+      };
+      log.error("Lead insert failed", errPayload);
       return NextResponse.json(
         { error: "We could not save your request. Please try again.", request_id: requestId },
         { status: 500 }
