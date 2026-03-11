@@ -68,6 +68,7 @@ export default async function SpecialistDashboardPage() {
                     <th className="px-4 py-3 font-medium">Lead ID</th>
                     <th className="px-4 py-3 font-medium">Requested</th>
                     <th className="px-4 py-3 font-medium">Scheduled</th>
+                    <th className="px-4 py-3 font-medium">Progress</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -77,6 +78,14 @@ export default async function SpecialistDashboardPage() {
                       <td className="px-4 py-3 font-mono text-xs">{c.lead_id.slice(0, 8)}…</td>
                       <td className="px-4 py-3 text-zinc-600">{c.requested_at ? new Date(c.requested_at).toLocaleDateString() : "—"}</td>
                       <td className="px-4 py-3 text-zinc-600">{c.scheduled_at ? new Date(c.scheduled_at).toLocaleDateString() : "—"}</td>
+                      <td className="px-4 py-3">
+                        <Link
+                          href={`/specialist/progress?lead_id=${encodeURIComponent(c.lead_id)}`}
+                          className="text-sm font-medium text-emerald-600 hover:underline"
+                        >
+                          Update progress
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

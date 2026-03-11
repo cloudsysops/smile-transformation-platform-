@@ -11,6 +11,9 @@ import TravelPlanSection from "@/app/components/dashboard/TravelPlanSection";
 import TreatmentTimelineSection from "@/app/components/dashboard/TreatmentTimelineSection";
 import CareCoordinatorSection from "@/app/components/dashboard/CareCoordinatorSection";
 import AftercareSection from "@/app/components/dashboard/AftercareSection";
+import TreatmentProgressTimeline from "@/app/components/dashboard/TreatmentProgressTimeline";
+import PatientNextStepCard from "@/app/components/dashboard/PatientNextStepCard";
+import { getProgressForPatient } from "@/lib/clinical/progress";
 import type { PackageWithRelations } from "@/lib/packages";
 
 export default async function PatientDashboardPage() {
@@ -22,9 +25,10 @@ export default async function PatientDashboardPage() {
     redirect("/login?next=/patient");
   }
   const email = profile.email ?? "";
-  const [data, packages] = await Promise.all([
+  const [data, packages, progressList] = await Promise.all([
     getPatientDashboardData(email),
     getPublishedPackages(),
+    getProgressForPatient(profile.id),
   ]);
   const leads = data.leads as { id: string; first_name: string; last_name: string; email: string; status: string; package_slug: string | null; recommended_package_slug: string | null; created_at: string }[];
   const bookings = data.bookings as { id: string; lead_id: string; package_id: string | null; status: string; total_price_usd: number | null; deposit_paid: boolean; deposit_cents: number | null; start_date: string | null; end_date: string | null }[];
@@ -88,6 +92,13 @@ export default async function PatientDashboardPage() {
   const hasTransfer = /transfer|airport|transport/i.test(includedText);
   const hasHotel = /hotel|lodging|accommodation|stay/i.test(includedText);
 
+  const progressByNewest = [...progressList].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+  const latestProgress = progressByNewest[0]
+    ? { stage_key: progressByNewest[0].stage_key, stage_label: progressByNewest[0].stage_label, status: progressByNewest[0].status, notes: progressByNewest[0].notes }
+    : null;
+
   return (
     <div className="min-h-screen bg-zinc-100">
       <header className="border-b border-zinc-200 bg-white shadow-sm">
@@ -144,6 +155,15 @@ export default async function PatientDashboardPage() {
             </div>
           </>
         )}
+
+        <div className="mb-8">
+          <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">Clinical progress</h2>
+          <p className="mb-6 text-sm text-zinc-600">Updates from your care team and where you are in your journey</p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <TreatmentProgressTimeline items={progressList} />
+            <PatientNextStepCard latest={latestProgress} />
+          </div>
+        </div>
 
         {travelPackage && (
           <div className="mb-8 rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 shadow-sm">
