@@ -51,3 +51,6 @@ yarn-error.log*
 next-env.d.ts
 supabase/.temp/
 .env*.local
+
+# growth engine output
+/data/reddit-leads.json

@@ -15,6 +15,7 @@ type Lead = {
   recommended_package_slug?: string | null;
   package_slug?: string | null;
   selected_specialties?: string[] | null;
+  budget_range?: string | null;
 };
 
 type Props = Readonly<{
@@ -87,6 +88,24 @@ function badgeLabel(priority: LeadWithPriority["priority"]): string {
   }
 }
 
+/** AI-style lead score (high/medium/low) from treatment interest and budget. */
+function leadScore(lead: Lead): "high" | "medium" | "low" {
+  const hasTreatment =
+    (Array.isArray(lead.selected_specialties) && lead.selected_specialties.length > 0) ||
+    (lead.recommended_package_slug ?? "").trim() !== "" ||
+    (lead.package_slug ?? "").trim() !== "";
+  const hasBudget = (lead.budget_range ?? "").trim() !== "";
+  if (hasTreatment && hasBudget) return "high";
+  if (hasTreatment || hasBudget) return "medium";
+  return "low";
+}
+
+function scoreBadgeClass(score: "high" | "medium" | "low"): string {
+  if (score === "high") return "bg-emerald-100 text-emerald-700";
+  if (score === "medium") return "bg-amber-100 text-amber-800";
+  return "bg-zinc-100 text-zinc-700";
+}
+
 /** Operator-friendly next action: recommend package vs collect deposit */
 function nextActionLabel(lead: Lead): string {
   if (lead.status === "deposit_paid") return "—";
@@ -149,6 +168,7 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Name</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Email</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Treatment interest</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Score</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Priority</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Status</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Next action</th>
@@ -173,6 +193,11 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
                 <td className="px-4 py-3">{lead.email}</td>
                 <td className="px-4 py-3 text-xs text-zinc-700">
                   {lead.selected_specialties?.[0] ?? lead.recommended_package_slug ?? lead.package_slug ?? "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${scoreBadgeClass(leadScore(lead))}`}>
+                    {leadScore(lead).toUpperCase()}
+                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(lead.priority)}`}>
