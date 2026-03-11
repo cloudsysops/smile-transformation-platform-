@@ -150,6 +150,9 @@ export default function AssessmentWizard({ packages, prefillPackageSlug = "" }: 
         router.push(`/assessment/proposal?${params.toString()}`);
         return;
       }
+      // Fallback: if the API returned 2xx but no lead_id (e.g. honeypot or atypical success),
+      // still show a clear success state instead of leaving the user on the form.
+      router.push("/thank-you");
       setStatus("idle");
     } catch (err) {
       if (process.env.NODE_ENV === "development") {

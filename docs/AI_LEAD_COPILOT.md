@@ -65,3 +65,13 @@ The copilot does **not** send messages automatically. It only suggests text; the
 - If the API key is missing, the service returns the fallback immediately (no LLM call).
 - If the LLM throws or returns invalid JSON, the API returns the fallback and sets `from_fallback: true`.
 - The admin UI always receives a valid response (either AI or fallback) so the coordinator can still copy and edit.
+
+---
+
+## AI safety guidelines (Lead Copilot)
+
+- Never include secrets (API keys, tokens, internal URLs) in prompts or model responses.
+- Always validate the model output against strict schemas (Zod) before using it.
+- Keep fallbacks in place so coordinators always have a usable draft when the model fails or is unavailable.
+- Log errors and failures with enough context to debug, but without leaking personally sensitive data from patients.
+- Keep a human in the loop: Lead Copilot only suggests drafts; coordinators review and decide what to send.

@@ -73,6 +73,25 @@ After every deploy:
 
 ---
 
+## Reuse-first rule
+
+To avoid duplication and keep the product coherent:
+
+1. **Before designing a new flow or component:**
+   - Check `docs/` for existing specs or decisions (e.g. `ARCHITECTURE.md`, `PRODUCT_PLATFORM_STRATEGY.md`, `QA_RELEASE_PLAYBOOK.md`).
+   - Search the codebase for existing components/helpers/APIs that solve a similar problem.
+2. **Prefer extending existing patterns** (components, helpers, endpoints) instead of creating parallel ones (e.g. no second assessment flow, no duplicate Stripe webhook, no new lead table).
+3. Only introduce a new pattern when there is no reasonable reusable equivalent or the existing pattern is explicitly deprecated.
+
+This rule applies especially to:
+
+- Assessment and lead capture
+- Admin lead views and follow-up
+- Stripe checkout + webhook
+- AI agents (lead copilot, follow-up, automation)
+
+---
+
 ## Expectation: critical product changes must be test-backed
 
 - **Critical product change:** Anything that affects assessment completion, proposal conversion, lead creation, payments, or admin visibility of leads.

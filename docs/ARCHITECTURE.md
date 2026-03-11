@@ -1,6 +1,6 @@
 # Arquitectura — MedVoyage Smile
 
-Visión de alto nivel del sistema. Este repo es el **producto canónico** (ver [PLAN_MEJORAS_DESDE_OTROS_REPOS.md](PLAN_MEJORAS_DESDE_OTROS_REPOS.md)).
+Visión de alto nivel del sistema. Este repo es el **producto canónico** (ver [PRODUCT_PLATFORM_STRATEGY.md](PRODUCT_PLATFORM_STRATEGY.md)).
 
 ---
 
@@ -43,14 +43,14 @@ Analytics (/admin/analytics)
 
 - **Traffic discovery:** Reddit (script `npm run growth:leads`), resultados en `data/reddit-leads.json`. Ver [GROWTH_LEAD_DISCOVERY.md](GROWTH_LEAD_DISCOVERY.md).
 - **Analytics:** `/admin/analytics` — métricas desde Supabase (leads, high priority, packages, país). Ver [ANALYTICS_DASHBOARD.md](ANALYTICS_DASHBOARD.md).
-- **Futuro (opcional):** Tabla `events` (assessment_started, assessment_completed, proposal_viewed, whatsapp_clicked, deposit_paid) para métricas de conversión más finas. Ver plan en [PLAN_MEJORAS_DESDE_OTROS_REPOS.md](PLAN_MEJORAS_DESDE_OTROS_REPOS.md).
+- **Futuro (opcional):** Tabla `events` (assessment_started, assessment_completed, proposal_viewed, whatsapp_clicked, deposit_paid) para métricas de conversión más finas. Ver también [SINTESIS_Y_PLAN_MEJORAS.md](SINTESIS_Y_PLAN_MEJORAS.md).
 
 ---
 
 ## Calidad y seguridad
 
 - **Verify:** `npm run verify` → lint, test, env_check, build.
-- **CI:** GitHub Actions (lint, test, env shape, build). Opcional: workflow de security (secret scan, npm audit). Ver [PLAN_MEJORAS_DESDE_OTROS_REPOS.md](PLAN_MEJORAS_DESDE_OTROS_REPOS.md).
+- **CI:** GitHub Actions (lint, test, env shape, build). Opcional: workflow de security (secret scan, npm audit). Ver [GITHUB_GOVERNANCE_FINAL.md](GITHUB_GOVERNANCE_FINAL.md).
 - **Secrets:** Solo en env (Vercel, `.env.local` no commiteado). Ver [ENV_Y_STRIPE.md](ENV_Y_STRIPE.md), [SECURITY.md](../SECURITY.md).
 
 ---
