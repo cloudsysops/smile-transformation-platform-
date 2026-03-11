@@ -13,8 +13,34 @@ function SignupForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleGoogleSignUp() {
+    setError(null);
+    const supabase = getBrowserSupabase();
+    if (!supabase) {
+      setError("Auth not configured.");
+      return;
+    }
+    try {
+      setOauthLoading(true);
+      const origin = globalThis.location.origin;
+      const callbackUrl = new URL("/auth/callback", origin);
+      callbackUrl.searchParams.set("next", "/patient");
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      setError("Could not start Google sign-up. Please try again.");
+      setOauthLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -72,6 +98,18 @@ function SignupForm() {
             <p className="mt-2 text-sm text-zinc-400">
               For patients. Create an account to track your journey, view your recommended package, and pay your deposit online.
             </p>
+
+            <div className="mt-6 border-b border-zinc-800 pb-6">
+              <button
+                type="button"
+                onClick={handleGoogleSignUp}
+                disabled={oauthLoading}
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/50 py-3 text-sm font-medium text-white hover:bg-zinc-800/80 disabled:opacity-60"
+                aria-label="Continue with Google"
+              >
+                {oauthLoading ? "Redirecting to Google…" : "Continue with Google"}
+              </button>
+            </div>
 
             <form onSubmit={handleSubmit} className="mt-8 space-y-5">
               <div>

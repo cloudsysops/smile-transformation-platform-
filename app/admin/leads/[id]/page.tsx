@@ -9,6 +9,8 @@ import LeadFollowUpForm from "../LeadFollowUpForm";
 import LeadRecommendationForm from "../LeadRecommendationForm";
 import DepositButton from "../DepositButton";
 import AiActionsPanel from "./AiActionsPanel";
+import LeadCopilotPanel from "./LeadCopilotPanel";
+import LeadFollowUpSection from "./LeadFollowUpSection";
 import OutboundQueuePanel from "../OutboundQueuePanel";
 import { ItineraryOutputSchema, LeadTriageOutputSchema, SalesResponderOutputSchema } from "@/lib/ai/schemas";
 import AdminShell from "../../_components/AdminShell";
@@ -230,6 +232,16 @@ export default async function AdminLeadDetailPage({ params }: Props) {
           </dl>
         </section>
 
+        <LeadCopilotPanel
+          leadId={lead.id}
+          leadPhone={(lead.phone as string | null) ?? null}
+          leadFirstName={(lead.first_name as string | null) ?? null}
+        />
+        <LeadFollowUpSection
+          leadId={lead.id}
+          leadPhone={(lead.phone as string | null) ?? null}
+          leadCreatedAt={(lead.created_at as string | null) ?? null}
+        />
         <LeadStatusForm leadId={lead.id} currentStatus={lead.status} />
         <LeadRecommendationForm
           leadId={lead.id}
