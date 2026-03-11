@@ -119,7 +119,7 @@ export default async function Home() {
       {/* Announcement bar */}
       <div className="bg-emerald-950/90 border-b border-emerald-800/50 text-center py-2 px-4">
         <p className="text-sm text-emerald-100">
-          Free Smile Evaluation — no commitment. We respond within 24 hours.{" "}
+          Free coordinator review · Personalized treatment planning · Start with a no-pressure assessment. Response typically within 24 hours.{" "}
           <Link href="/assessment" className="font-semibold text-white underline underline-offset-2 hover:text-emerald-200">
             Start free
           </Link>
@@ -167,17 +167,17 @@ export default async function Home() {
           <div className="grid gap-12 md:grid-cols-2 md:items-center md:gap-16">
             <div>
               <h1 className="font-serif mb-6 text-3xl font-normal tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
-                Your New Smile, 70% Less. Experience Medellín&apos;s World-Class Dental Care.
+                Premium dental care in Colombia with guided coordination from assessment to treatment.
               </h1>
               <p className="mb-10 max-w-lg text-lg leading-relaxed text-zinc-400">
-                A full-service concierge experience. From consultation to recovery, we manage every detail of your dental journey in Colombia.
+                Complete your free smile assessment and receive a personalized treatment plan with estimated savings.
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
                 <Link
                   href="/assessment"
                   className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full bg-white px-8 py-4 text-base font-semibold text-zinc-900 hover:bg-zinc-100 sm:w-auto focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-zinc-950"
                 >
-                  Get My Free Treatment Plan
+                  Start Free Smile Assessment
                 </Link>
                 <Link
                   href="/packages"
@@ -187,7 +187,7 @@ export default async function Home() {
                 </Link>
               </div>
               <p className="mt-4 text-sm text-zinc-500" aria-hidden="true">
-                Trusted by international patients · Secure deposit · Guided by concierge coordinators · No commitment
+                Verified dental clinics · International patient coordination · Secure deposit payments · Guided travel and treatment planning
               </p>
             </div>
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900 md:aspect-square">
@@ -220,42 +220,42 @@ export default async function Home() {
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
                 <svg className="h-4 w-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>
               </span>
-              Verified clinic
+              Verified dental clinics
             </span>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-300">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
               </span>
-              International standards
+              International patient coordination
             </span>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-300">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
               </span>
-              Secure payments
+              Secure deposit payments
             </span>
             <span className="inline-flex items-center gap-2 text-sm font-medium text-zinc-300">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
                 <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               </span>
-              Concierge support
+              Guided travel and treatment planning
             </span>
           </div>
           <ul className="grid gap-6 sm:grid-cols-3">
             <li className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 text-center transition hover:border-emerald-500/50">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20"><TrustIcon icon="clinic" /></div>
-              <h3 className="mb-1 font-bold text-white">Verified Clinics</h3>
+              <h3 className="mb-1 font-bold text-white">Verified dental clinics</h3>
               <p className="text-sm text-zinc-400">Vetted partners in Medellín and Manizales. Quality and safety first.</p>
             </li>
             <li className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 text-center transition hover:border-emerald-500/50">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20"><TrustIcon icon="people" /></div>
-              <h3 className="mb-1 font-bold text-white">International Patients</h3>
-              <p className="text-sm text-zinc-400">Thousands of patients from the US, Canada, and Europe choose Colombia.</p>
+              <h3 className="mb-1 font-bold text-white">International patient coordination</h3>
+              <p className="text-sm text-zinc-400">From first contact to follow-up. We coordinate your journey so you&apos;re never alone.</p>
             </li>
             <li className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 text-center transition hover:border-emerald-500/50">
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20"><TrustIcon icon="transport" /></div>
-              <h3 className="mb-1 font-bold text-white">Concierge Medical Travel</h3>
-              <p className="text-sm text-zinc-400">We handle lodging, transport, and appointments so you focus on your smile.</p>
+              <h3 className="mb-1 font-bold text-white">Guided travel and treatment planning</h3>
+              <p className="text-sm text-zinc-400">Secure deposit payments. We handle lodging, transport, and appointments so you focus on your smile.</p>
             </li>
           </ul>
           <p className="mt-6 rounded-xl border border-zinc-700 bg-zinc-900/60 px-5 py-4 text-sm text-zinc-400">

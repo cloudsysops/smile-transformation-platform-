@@ -117,17 +117,35 @@ export default async function ProposalPage({ searchParams }: Props) {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-12 sm:py-24">
-        {/* Hero: Your Personalized Smile Preview */}
-        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-950/30 p-6 text-center shadow-lg shadow-emerald-950/30 sm:p-8">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20">
-            <svg className="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h1 className="mt-4 font-serif text-2xl font-normal tracking-tight text-white sm:text-3xl">
-            Your personalized smile preview
+        {/* Top conversion block: plan ready + savings + coordinator + primary CTA */}
+        <div className="rounded-2xl border border-emerald-500/40 bg-emerald-950/40 p-6 text-center shadow-lg shadow-emerald-950/30 sm:p-8">
+          <h1 className="font-serif text-2xl font-normal tracking-tight text-white sm:text-3xl">
+            Your smile plan is ready
           </h1>
-          <p className="mt-2 text-zinc-300">
+          <p className="mt-2 text-lg font-semibold text-emerald-300">
+            {savingsDollars != null
+              ? `Estimated savings: $${savingsDollars.toLocaleString()}+`
+              : `Estimated savings: ${savingsRange}`}
+          </p>
+          <p className="mt-3 text-zinc-300">
+            A dental travel coordinator can now help you review your options.
+          </p>
+          <div className="mt-6">
+            <WhatsAppButton
+              message={whatsAppMessage}
+              label="Discuss My Treatment Plan on WhatsApp"
+              variant="inline"
+              className="inline-flex min-h-[52px] w-full items-center justify-center rounded-full border-0 bg-emerald-600 px-8 text-base font-semibold hover:bg-emerald-700 sm:w-auto"
+            />
+          </div>
+        </div>
+
+        {/* Personalized preview summary */}
+        <div className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6 text-center sm:p-6">
+          <h2 className="font-serif text-xl font-normal tracking-tight text-white">
+            Your personalized smile preview
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400">
             Based on your assessment, here&apos;s what you can expect with {branding.productName}—and your next steps.
           </p>
         </div>
@@ -247,27 +265,27 @@ export default async function ProposalPage({ searchParams }: Props) {
         {/* Why patients trust MedVoyage Smile */}
         <section className="mt-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6" aria-labelledby="trust-heading">
           <h2 id="trust-heading" className="text-xl font-serif font-normal text-white">
-            Why patients trust MedVoyage Smile
+            Why patients trust {branding.productName}
           </h2>
           <p className="mt-1 text-sm text-zinc-400">
-            International patient coordination, secure deposits, and a dedicated team from first contact to follow-up.
+            Verified dental clinics, international patient coordination, secure deposit payments, and guided travel and treatment planning.
           </p>
           <ul className="mt-4 space-y-3 text-sm text-zinc-300">
+            <li className="flex gap-3">
+              <span className="text-emerald-400" aria-hidden>✓</span>
+              <span>Verified dental clinics</span>
+            </li>
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
               <span>International patient coordination</span>
             </li>
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>Secure Stripe deposit process</span>
+              <span>Secure deposit payments</span>
             </li>
             <li className="flex gap-3">
               <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>24h specialist review</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="text-emerald-400" aria-hidden>✓</span>
-              <span>Concierge travel support</span>
+              <span>Guided travel and treatment planning</span>
             </li>
           </ul>
         </section>
@@ -283,7 +301,7 @@ export default async function ProposalPage({ searchParams }: Props) {
         <div className="mt-8 flex flex-col gap-3 sm:flex-wrap sm:items-center sm:justify-center sm:gap-3">
           <WhatsAppButton
             message={whatsAppMessage}
-            label="Talk to a dental travel coordinator"
+            label="Discuss My Treatment Plan on WhatsApp"
             variant="inline"
             className="inline-flex min-h-[48px] w-full items-center justify-center rounded-full border-0 bg-emerald-600 px-6 font-semibold hover:bg-emerald-700 sm:w-auto"
           />

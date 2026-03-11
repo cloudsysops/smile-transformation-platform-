@@ -370,7 +370,7 @@ export default function AssessmentWizard({ packages, prefillPackageSlug = "" }: 
               Contact info
             </h2>
               <p className="text-sm text-zinc-400">
-                We’ll use this to send your personalized plan. We respond within 24 hours.
+                We’ll only need the basics to send your personalized plan—no commitment. Response typically within 24 hours.
               </p>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>

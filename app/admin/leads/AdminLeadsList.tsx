@@ -13,6 +13,8 @@ type Lead = {
   last_contacted_at?: string | null;
   next_follow_up_at?: string | null;
   recommended_package_slug?: string | null;
+  package_slug?: string | null;
+  selected_specialties?: string[] | null;
 };
 
 type Props = Readonly<{
@@ -146,6 +148,7 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
             <tr>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Name</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Email</th>
+              <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Treatment interest</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Priority</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Status</th>
               <th className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-zinc-500">Next action</th>
@@ -168,6 +171,9 @@ export default function AdminLeadsList({ initialLeads, nowIso }: Props) {
                   </div>
                 </td>
                 <td className="px-4 py-3">{lead.email}</td>
+                <td className="px-4 py-3 text-xs text-zinc-700">
+                  {lead.selected_specialties?.[0] ?? lead.recommended_package_slug ?? lead.package_slug ?? "—"}
+                </td>
                 <td className="px-4 py-3">
                   <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${badgeClass(lead.priority)}`}>
                     {badgeLabel(lead.priority)}
