@@ -457,6 +457,50 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* 2b. Meet your smile coordinator */}
+        <section id="coordinator" className="mb-24 scroll-mt-6 md:mb-32 py-12 md:py-16">
+          <div className="grid gap-10 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-center">
+            <div>
+              <h2 className="font-serif text-2xl font-normal tracking-tight text-white sm:text-3xl">
+                Meet your smile coordinator
+              </h2>
+              <p className="mt-3 text-sm text-zinc-300 sm:text-base">
+                Every patient is assigned a dedicated medical travel coordinator. Your coordinator reviews your assessment,
+                discusses your goals, and helps plan your treatment and travel in Colombia.
+              </p>
+              <ul className="mt-5 space-y-2 text-sm text-zinc-300">
+                <li className="flex gap-2">
+                  <span className="mt-1 text-emerald-400" aria-hidden>•</span>
+                  <span>Reviews your smile assessment with our specialists and clarifies your options.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 text-emerald-400" aria-hidden>•</span>
+                  <span>Helps you understand treatment timelines, recovery, and when to travel.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 text-emerald-400" aria-hidden>•</span>
+                  <span>Coordinates dates, city choice between Medellín and Manizales, and key appointments.</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1 text-emerald-400" aria-hidden>•</span>
+                  <span>Stays available on WhatsApp for questions before and during your journey.</span>
+                </li>
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 sm:p-8">
+              <h3 className="text-sm font-semibold text-white">What your coordinator does not do</h3>
+              <p className="mt-2 text-xs text-zinc-400">
+                Your coordinator is not a substitute for medical advice from your dentist or specialist. Their role is to
+                help you navigate options, logistics, and communication so your experience feels guided—not rushed.
+              </p>
+              <p className="mt-4 text-xs text-zinc-400">
+                After you submit your assessment, we usually respond within one business day with a coordinator‑led
+                review and next steps.
+              </p>
+            </div>
+          </div>
+        </section>
+
         {/* Medical Experience Story — full patient journey */}
         <section id="medical-experience-story" className="mb-20 scroll-mt-6 md:mb-28">
           <h2 className="mb-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">

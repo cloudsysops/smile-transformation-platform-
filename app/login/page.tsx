@@ -14,8 +14,36 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleGoogleSignIn() {
+    setError(null);
+    const supabase = getBrowserSupabase();
+    if (!supabase) {
+      setError("Auth not configured.");
+      return;
+    }
+    try {
+      setOauthLoading(true);
+      const origin = globalThis.location.origin;
+      const callbackUrl = new URL("/auth/callback", origin);
+      if (next) {
+        callbackUrl.searchParams.set("next", next);
+      }
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: callbackUrl.toString(),
+        },
+      });
+    } catch (e) {
+      console.error(e);
+      setError("Could not start Google sign-in. Please try again.");
+      setOauthLoading(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -70,15 +98,15 @@ function LoginForm() {
               Use your account to access your dashboard. Patient accounts can be created via sign up; team accounts are created by the admin.
             </p>
 
-            {/* Optional: Continue with Google — visual space only; wire OAuth when ready */}
             <div className="mt-6 border-b border-zinc-800 pb-6">
               <button
                 type="button"
-                disabled
-                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/50 py-3 text-sm font-medium text-zinc-500"
-                aria-label="Continue with Google (coming soon)"
+                onClick={handleGoogleSignIn}
+                disabled={oauthLoading}
+                className="w-full rounded-xl border border-zinc-700 bg-zinc-800/50 py-3 text-sm font-medium text-white hover:bg-zinc-800/80 disabled:opacity-60"
+                aria-label="Continue with Google"
               >
-                Continue with Google (coming soon)
+                {oauthLoading ? "Redirecting to Google…" : "Continue with Google"}
               </button>
             </div>
 
