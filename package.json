@@ -29,7 +29,7 @@
     "recharts": "^3.8.0",
     "stripe": "^20.4.0",
     "vercel": "^50.28.0",
-    "zod": "^3.24.1"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
