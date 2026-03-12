@@ -129,13 +129,15 @@ export default async function Home() {
       <header className="sticky top-0 z-40 border-b border-white/20 bg-white/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:py-5">
           <Link href="/" className="text-lg font-semibold text-zinc-900 hover:text-zinc-700">{branding.productName}</Link>
-          <nav className="flex items-center gap-2 sm:gap-3">
-            <Link href="/login" className="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 sm:inline-block">
-              Sign in
-            </Link>
-            <Link href="/signup" className="hidden text-sm font-medium text-zinc-600 hover:text-zinc-900 sm:inline-block">
-              Sign up
-            </Link>
+          <nav className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/login" className="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+                Sign in
+              </Link>
+              <Link href="/signup" className="text-sm font-medium text-zinc-600 hover:text-zinc-900">
+                Sign up
+              </Link>
+            </div>
             <Link
               href="/assessment"
               className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 sm:px-5 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-white/80"
