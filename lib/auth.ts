@@ -96,7 +96,7 @@ export function getRedirectPathForRole(role: ProfileRole): string {
   const r = roleRedirectRole(role);
   switch (r) {
     case "admin":
-      return "/admin";
+      return "/admin/overview";
     case "coordinator":
       return "/coordinator";
     case "provider_manager":

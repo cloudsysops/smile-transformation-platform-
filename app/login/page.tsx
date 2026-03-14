@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getBrowserSupabase } from "@/lib/supabase/browser";
@@ -15,6 +15,25 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
+
+  // If already authenticated with a valid profile, redirect to dashboard by role.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (cancelled || !res.ok) return;
+        const data = (await res.json()) as { redirectPath?: string };
+        const target = next || data.redirectPath || "/patient";
+        router.replace(target);
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [next, router]);
 
   async function handleGoogleSignIn() {
     setError(null);
@@ -59,19 +78,12 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    try {
-      const res = await fetch("/api/auth/me", { credentials: "include" });
-      if (res.ok) {
-        const data = await res.json();
-        const target = next || data.redirectPath || "/admin";
-        router.push(target);
-        router.refresh();
-        return;
-      }
-    } catch {
-      // fallback
-    }
-    router.push(next || "/admin");
+    // Let server-side /auth/callback ensure profile exists and redirect by role.
+    // Avoids race with session cookie and handles missing profile (creates patient).
+    const callbackUrl = next
+      ? `/auth/callback?next=${encodeURIComponent(next)}`
+      : "/auth/callback";
+    router.push(callbackUrl);
     router.refresh();
   }
 
